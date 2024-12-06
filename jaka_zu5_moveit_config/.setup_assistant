@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: jaka_description
+    relative_path: urdf/jaka_zu5.urdf
+  srdf:
+    relative_path: config/jaka_zu5.srdf
+  package_settings:
+    author_name: peng.zhang65
+    author_email: peng.zhang65@lotuscars.com.cn
+    generated_timestamp: 1732697696

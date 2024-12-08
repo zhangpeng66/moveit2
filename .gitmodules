@@ -30,3 +30,7 @@
 	path = srdfdom
 	url = https://github.com/ros-planning/srdfdom.git
 	branch = ros2
+[submodule "warehouse_ros_mongo"]
+	path = warehouse_ros_mongo
+	url = https://github.com/moveit/warehouse_ros_mongo.git
+	branch = ros2

@@ -14,3 +14,7 @@
 	path = moveit_resources
 	url = https://github.com/moveit/moveit_resources.git
 	branch = humble
+[submodule "moveit_visual_tools"]
+	path = moveit_visual_tools
+	url = https://github.com/moveit/moveit_visual_tools.git
+	branch = ros2

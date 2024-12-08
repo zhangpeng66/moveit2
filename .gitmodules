@@ -1,0 +1,4 @@
+[submodule "moveit2"]
+	path = moveit2
+	url = https://github.com/moveit/moveit2.git
+	branch = humble

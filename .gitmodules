@@ -18,3 +18,7 @@
 	path = moveit_visual_tools
 	url = https://github.com/moveit/moveit_visual_tools.git
 	branch = ros2
+[submodule "rosparam_shortcuts"]
+	path = rosparam_shortcuts
+	url = https://github.com/PickNikRobotics/rosparam_shortcuts
+	branch = ros2

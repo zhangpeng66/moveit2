@@ -2,3 +2,7 @@
 	path = moveit2
 	url = https://github.com/moveit/moveit2.git
 	branch = humble
+[submodule "moveit2_tutorials"]
+	path = moveit2_tutorials
+	url = https://github.com/moveit/moveit2_tutorials.git
+	branch = humble

@@ -15,3 +15,8 @@ ros2 pkg create <package_name> --dependencies rclcpp std_msgs
 
 gz sdf -p robot.urdf > robot.sdf
 colcon build --cmake-args -DBUILD_TESTING=ON
+
+git submodule add -b humble https://github.com/moveit/moveit2.git
+如果目录存在.gitmodules则
+git submodule add -f -b humble https://github.com/moveit/moveit2.git
+git push origin master 

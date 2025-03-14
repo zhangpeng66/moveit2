@@ -20,3 +20,5 @@ git submodule add -b humble https://github.com/moveit/moveit2.git
 如果目录存在.gitmodules则
 git submodule add -f -b humble https://github.com/moveit/moveit2.git
 git push origin master 
+更新子库
+git submodule update init

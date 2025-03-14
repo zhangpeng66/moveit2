@@ -60,7 +60,9 @@
 安装请参考[ROS MoveIT2（humble）安装总结](https://blog.csdn.net/woshigaowei5146/article/details/128131452),[官网](https://moveit.picknik.ai/main/doc/tutorials/getting_started/getting_started.html)
 colcon build --mixin release --parallel-workers 8
 wget https://github.com/ricab/scope_guard/blob/main/scope_guard.hpp
+运行增加日志Dubug格式，打印更多日志
 ros2 run hello_moveit hello_moveit --ros-args --log-level DEBUG
+将rst格式转md文件格式
 pandoc input.rst -f rst -t markdown -o output.md
 ros2 pkg create <package_name> --dependencies rclcpp std_msgs
 ## 发展历程
@@ -71,7 +73,7 @@ MoveIt 2 是 MoveIt 的下一代版本，基于 ROS 2 开发，解决了 ROS 1 �
 2020年：MoveIt 2 在 ROS 2 下的功能逐步完善，包括支持实时通信、增强的多机器人协作、改进的碰撞检测和路径规划等。同时，MoveIt 2 加强了对工业机器人平台的支持，并进一步改进了对传感器数据和环境感知的整合。
 
 2021年：MoveIt 2 推出了更多针对工业应用的改进，如与工业机器人控制器的更好集成，以及支持多种传感器（激光雷达、相机等）信息的融合。
-![alt text](readme/image4.png)
+![alt text](images/image4.png)
 ### 主要的功能
 1. 运动规划（Motion Planning）
 多种运动规划算法：MoveIt 2 支持多个运动规划算法，包括 RRT (Rapidly-exploring Random Tree)、PRM (Probabilistic Roadmap)、STOMP、CHOMP 等。
@@ -108,7 +110,7 @@ MoveIt 2 Setup Assistant：MoveIt 2 提供了 Setup Assistant 工具，使用户
 
 ***
 ## Moveit2代码框架及[概念](https://moveit.picknik.ai/main/doc/concepts/concepts.html)
-![alt text](readme/image1.png)
+![alt text](images/image1.png)
 
 ### 规划接口  
 MoveIt 2 中支持多种规划器，[PlanningPipeline](./moveit2/moveit_ros/planning/planning_pipeline/src/planning_pipeline.cpp) 充当了一个统一接口，使用户可以方便地选择和切换规划器，而无需修改代码逻辑。  
@@ -120,7 +122,7 @@ Moveit2提供四个默认的规划流水线的实现：
 2. 基于搜索的规划器SBPL（Search-Based Planning Library）
 3. 基于梯度轨迹优化的协变哈密顿量优化规划器CHOMP（Covariant Hamiltonian Optimization for Motion Planning）[chomp_interface.cpp](./moveit2/moveit_planners/chomp/chomp_interface/src/chomp_interface.cpp)
 4. PIMP 是一种专注于工业机器人的运动规划器（Pilz Industrial Motion Planner）[pilz_industrial_motion_planner.cpp](./moveit2/moveit_planners/pilz_industrial_motion_planner/src/pilz_industrial_motion_planner.cpp)
-![alt text](readme/image2.png)  
+![alt text](images/image2.png)  
 PIMP：适合工业机器人场景，如自动化生产线，需要高效、安全、工业标准的路径规划。
 OMPL：适合广泛的研究和工程项目，尤其是机器人领域的通用路径规划任务。
 CHOMP：适合高自由度、高精度要求的路径规划问题，尤其是在复杂环境下的轨迹优化。
@@ -130,7 +132,7 @@ SBPL：适合动态和大规模环境中的路径规划，尤其是基于离散�
 Moveit2提供了两种实现：
 基于FCL(Flexible Collision Library)库实现的碰撞检测[collision_detector_fcl_plugin_loader.cpp](./moveit2/moveit_core/collision_detection_fcl/src/collision_detector_fcl_plugin_loader.cpp)。
 源码中没看到PCD,只看到了Bullet碰撞检测[collision_detector_bullet_plugin_loader.cpp](./moveit2/moveit_core/collision_detection_bullet/src/collision_detector_bullet_plugin_loader.cpp)
-![alt text](readme/image3.png)    
+![alt text](images/image3.png)    
 MoveIt 中的碰撞检查主要使用FCL，MoveIt 支持不同类型物体的碰撞检查：[collision_common.cpp](./moveit2/moveit_core/collision_detection/src/collision_common.cpp)
 1.  网格- 您可以使用.stl（标准三角语言）或.dae（数字资产交换）格式来描述机器人链接等对象。
 2.  原始形状- 例如盒子、圆柱体、圆锥体、球体和平面  
@@ -138,8 +140,9 @@ MoveIt 中的碰撞检查主要使用FCL，MoveIt 支持不同类型物体的碰
  
 对于自碰撞 使用Allowed Collision Matrix (ACM)，如果两个物体总是相距很远以至于它们永远不会相互碰撞，则不需要碰撞检查 
 ## 运动学（Kinematics）
-MoveIt 的默认逆运动学插件是使用KDL基于雅可比矩阵的数值求解器配置的[kinematics_base.cpp](./moveit2/moveit_core/kinematics_base/src/kinematics_base.cpp)
-
+MoveIt 的默认逆运动学插件是使用KDL基于雅可比矩阵的数值求解器配置的[kinematics_base.cpp](./moveit2/moveit_core/kinematics_base/src/kinematics_base.cpp) ，可在Setup Assistant进行模型配置时，可以进行配置。
+![alt text](./images/image14.png)     
+配置完成后，就可以运行demo.launch控制虚拟机械臂进行运动规划了。但是KDL有自己的优缺点：
 ## 运动规划（Motion Planning）
 运动规划器的接口是通过 ROS 操作或服务（由节点提供move_group）实现的，move_group 的默认运动规划器使用 OMPL 和 MoveIt 接口（由 MoveIt 设置助手配置）配置。默认情况下可用的其他规划器包括 Pilz 工业运动规划器和 CHOMP
 ### 运动规划请求
@@ -153,7 +156,7 @@ MoveIt 的默认逆运动学插件是使用KDL基于雅可比矩阵的数值求�
 move_group节点将根据您的运动计划请求生成所需轨迹。此轨迹将使手臂（或任何关节组）移动到所需位置。请注意，move_group产生的结果是轨迹，而不仅仅是路径。move_group 将使用所需的最大速度和加速度（如果指定）来生成遵循关节级速度和加速度约束的轨迹。
 ### 运动规划请求适配器[planning_request_adapter.cpp](./moveit2/moveit_core/planning_request_adapter/src/planning_request_adapter.cpp)
 规划请求适配器允许预处理运动规划请求和后处理运动规划响应。预处理在几种情况下很有用，例如当机器人的起始状态略微超出机器人指定的关节限制时。其他几个操作需要后处理，例如将为机器人生成的路径转换为时间参数化的轨迹。MoveIt 提供了一组默认的运动规划适配器，每个适配器都执行非常具体的功能。
-![alt text](readme/image5.png)   
+![alt text](images/image5.png)   
 ### 检查开始状态边界 （CheckStartStateBounds）  
 在这种情况下，运动规划器无法进行规划，因为它会认为起始状态超出了关节限制。 “CheckStartStateBounds”规划请求适配器将通过将起始状态移动到关节限制来“修复”起始状态。  
 ### 验证工作空间边界 （ValidateWorkspaceBounds）   
@@ -189,42 +192,42 @@ MoveIt 的混合规划架构结合了一对全局和局部规划器，它们并�
 局部障碍物信息（通常通过传感器实时感知）。
 输出：一段平滑的轨迹或一组控制命令（速度、加速度等）。
 典型算法：如 DWA（动态窗口算法）、CHOMP（Covariant Hamiltonian Optimization for Motion Planning）、轨迹优化方法（如 STOMP）。
-![alt text](readme/image6.png)
+![alt text](images/image6.png)
 ### 混合规划架构 （The Hybrid Planning Architecture）  
-![alt text](readme/image7.png)  
+![alt text](images/image7.png)  
 架构组件设计为通用且高度可定制。由于组件仅通过 ROS 2 消息接口进行交互，因此很容易替换架构的每个组件或插件的实现。插件接口设计为最小，并尽可能从实际算法实现中抽象出来。这使开发人员可以完全专注于隔离的逻辑或求解器，而无需实现基础架构的任何部分。这还允许将相同的组件重复用于不同的设置或规划问题。
 #### 混合规划管理器 （Hybrid Planning Manager）  
-![alt text](readme/image8.png)
+![alt text](images/image8.png)
 该组件是架构的“大脑”。其主要目的是处理 HybridPlanner 操作请求并根据规划逻辑插件协调运动规划和执行过程。规划逻辑在 PlanningLogic 插件中实现，设计为事件驱动。事件由字符串标识符定义，可能会触发针对全局或本地规划器的操作调用或取消。下图显示了一个简单规划逻辑的示例事件日志： 
-![alt text](readme/image9.png)
+![alt text](images/image9.png)
 在此示例中，混合规划管理器在收到混合规划请求后启动全局规划器。全局轨迹到达后，本地规划器启动，本地规划器完成后，混合规划管理器返回混合规划响应。   
 #### 全局规划组件 （Global Planner）  
-![alt text](readme/image10.png)   
+![alt text](images/image10.png)   
 Global Planner 是该架构中最简单的组件。它提供了一个处理 GlobalPlanner 请求的操作（Action）服务器。这些请求包括通用的 MotionPlanRequests，由 Global Planner 插件处理。默认情况下，这只是 MoveIt 的规划管道，但从技术上讲，任何类型的规划器甚至 MTC 都可以在这里使用。使用操作反馈报告规划结果，并将解决方案轨迹发布到 Local Planner 以供进一步处理。   
 #### 局部规划组件 （Local Planner）    
 本地规划器还运行一个操作（Action）服务器，用于处理来自混合规划管理器的请求。该操作用于启动和停止执行，还可以配置运行时参数，例如约束或求解器类型。
-![alt text](readme/image11.png)   
+![alt text](images/image11.png)   
 本地规划器实现基于两个插件：  
 1. 轨迹操作器：该插件维护全局参考轨迹，处理来自全局规划器的轨迹更新，并监控当前机器人状态的进程。
 2. 局部约束求解器：此插件实现了迭代求解器算法，该算法根据参考轨迹和局部约束生成机器人命令。它可能包括用于动态处理传感器输入或事件更新的附加接口。  
 
 下图显示了混合规划管理器采取行动请求后局部规划器的示例循环周期：  
-![alt text](readme/image12.png)    
+![alt text](images/image12.png)    
 每次迭代时，局部规划器都会请求当前规划场景，并将当前机器人状态与参考轨迹进行匹配。如果达到目标，则局部规划操作成功完成。否则，将根据当前机器人状态识别当前局部规划问题，然后进行解决。最后，将生成的控制命令发布给机器人控制器。  
 它是如何工作的？  
 通过绘制可视化不同组件的通信渠道和事件的工作流图，可以最好地理解混合规划器的运行时行为。
 下面的图表显示了成功执行轨迹的运行时逻辑。   
-![alt text](readme/image13.png)    
+![alt text](images/image13.png)    
 规划器由混合规划请求调用，这也是混合规划管理器响应的第一个事件。在此示例中，规划器逻辑只是按顺序运行两个规划器。在初始混合规划请求之后，混合规划管理器调用全局规划器。全局规划器计算并发布轨迹，该轨迹由混合规划管理器和本地规划器组件接收。需要注意的是，本地规划器组件仅处理新轨迹，直到被混合规划管理器调用后才开始执行。一旦混合规划管理器请求，本地规划器组件就会开始展开参考轨迹，并在达到最终状态时成功返回操作响应。之后，混合规划管理器返回成功的 HybridPlanningResponse。  
 现在让我们考虑一个更困难的场景，其中混合规划器被设计为通过重新规划在执行过程中避开障碍物。下面的动画显示了一个简单的运动，由于碰撞对象的变化，该运动在运行时被固定。  
-![hybrid planer](./readme/replanning_example.gif)  
+![hybrid planer](./images/replanning_example.gif)  
 这里，全局规划过程中出现的碰撞对象在计算出全局轨迹后消失。相反，出现了两个新的碰撞对象，使初始全局轨迹无效。局部规划器检测到即将发生的碰撞并暂停执行，直到全局规划器提供更新的无碰撞轨迹。   
 下面您可以看到所描述行为的工作流程。  
-![alt text](readme/image-1.png)
+![alt text](images/image-1.png)
 启动与第一个示例相同，但在展开参考轨迹期间，本地规划器检测到碰撞。在这里，规划器逻辑通过重新调用全局规划器做出反应。在计算新的全局解决方案时，本地规划器必须防止机器人与碰撞对象发生碰撞，即保持其当前位置。全局规划器完成计算后，新的全局解决方案将发布到本地规划器，本地规划器的轨迹运算符插件将更新混合到参考轨迹中。之后，本地规划器组件继续遵循参考轨迹，因为更新的解决方案使其能够绕过碰撞对象。
 ## 运动组（Move Group）   
 下图显示了 MoveIt 提供的关键节点move_group的高级系统架构。此节点充当集成器：将所有单个组件拉到一起，为用户提供一组 ROS 操作和服务，代码参考[move_group.cpp](./src/moveit2/moveit_ros/move_group/src/move_group.cpp)。  
-![alt text](readme/image-9.png)  
+![alt text](images/image-9.png)  
 ### 用户界面 （User Interface）
 用户可以move_group通过两种方式访问​​提供的操作和服务：
 1. 在 C++ 中- 使用[move_group_interface](https://moveit.picknik.ai/main/api/html/classmoveit_1_1planning__interface_1_1MoveGroupInterface.html)包，它提供了一个易于设置的 move_group C++ 接口，代码参考[move_group_interface.cpp](./moveit2/moveit_ros/planning_interface/move_group_interface/src/move_group_interface.cpp)
@@ -254,18 +257,18 @@ move_group使用 FollowJointTrajectoryAction 接口与机器人上的控制器�
 move_group使用规划场景监视器来维护规划场景，这是世界和机器人当前状态的表示。机器人状态可以包括任何附着在机器人上（由机器人携带）的物体，这些物体被认为是刚性附着在机器人上的。有关维护和更新规划场景的架构的更多详细信息，请参阅下面的**规划场景**部分。  
 ### 可扩展功能(Extensible Capabilities)
 move_group结构易于扩展。拾取和放置、运动学、运动规划等单个功能实际上是作为具有共同基类的单独插件实现的。这些插件可通过一组 ROS yaml 参数和使用 ROS pluginlib 库使用 ROS 进行配置。大多数用户无需配置 move_group 插件，因为它们会在 MoveIt 设置助手生成的启动文件中自动配置。
-![alt text](readme/image-8.png)  
+![alt text](images/image-8.png)  
 ## 规划场景监控 (Planning Scene Monitor) 
 规划场景([planning scene](./moveit2/moveit_core/planning_scene/src/pyplanning_scene.cpp))是一个用于存储机器人周围环境表示以及机器人本身状态的对象。对象（planning scene）的内部状态通常由一个组件（[planning_scene_monitor](./moveit2/moveit_ros/planning/planning_scene_monitor/src/planning_scene_monitor.cpp)）维护，该组件支持以线程安全的方式读取和写入状态。  
 具体来说，move_group节点和 rviz 规划场景插件都维护着自己的规划场景监视器（PSM）。move_group节点的 PSM监听主题/planning_scene，并将其规划场景状态发布到主题monitored_planning_scene。后者由 rviz 规划场景插件监听。  
-![alt text](readme/image-2.png)  
+![alt text](images/image-2.png)  
 ### 世界几何监视器 （World Geometry Monitor）
 世界几何监视器使用来自机器人上的传感器（例如激光雷达或深度摄像头）和用户输入的信息构建世界几何。它使用下面描述的内容构建机器人周围环境的 3D 表示，并使用主题信息对其进行扩充，以添加对象信息。occupancy map monitor 和planning_scene。 代码见[occupancy_map_monitor.cpp](./moveit2/moveit_ros/occupancy_map_monitor/src/occupancy_map_monitor.cpp) 
 ### 3D 感知 （3D Perception）
 MoveIt 中的 3D 感知由占用地图监视器 （occupancy map monitor）处理。占用地图监视器使用插件架构来处理不同类型的传感器输入，如上图所示。具体来说，MoveIt 内置了对处理两种输入的支持：
 1. 点云：由插件处理PointCloudOccupancyMapUpdater。[pointcloud_octomap_updater.cpp](./moveit2/moveit_ros/perception/pointcloud_octomap_updater/src/pointcloud_octomap_updater.cpp)
 2. 深度图像：由插件处理DepthImageOccupancyMapUpdater。[depth_image_octomap_updater.cpp](./moveit2/moveit_ros/perception/depth_image_octomap_updater/src/depth_image_octomap_updater.cpp)
-![alt text](readme/image-3.png)
+![alt text](images/image-3.png)
 请注意，您可以将自己的类型的更新程序作为插件添加到占用图监视器中  
 ### 占用栅格地图（Octomap）  
 占用地图监视器使用[Octomap](https://octomap.github.io/)来维护环境的占用地图。 Octomap实际上可以对有关单个细胞的概率信息进行编码，尽管 MoveIt 目前未使用此信息。[Octomap](./moveit2/moveit_ros/occupancy_map_monitor/src/occupancy_map_updater.cpp)通过occupancy_map_updater可以直接传递到 MoveIt 使用的碰撞检查库 FCL。  
@@ -278,7 +281,7 @@ MoveIt 中的 3D 感知由占用地图监视器 （occupancy map monitor）处�
 ### 什么是 MoveIt 任务构造器?  
 MoveIt 任务构造器 [MTC](./moveit_task_constructor) 框架有助于将复杂的规划任务分解为多个相互依赖的子任务。
 MTC 使用 MoveIt 来解决子任务。子任务的信息通过 InterfaceState 对象传递。  
-![alt text](readme/image-4.png)  
+![alt text](images/image-4.png)  
 ### MTC 阶段
 MTC阶段是指任务执行管道中的组件或步骤。
 阶段可以按任意顺序排列，并且其层次结构仅受各个阶段类型的限制。
@@ -289,19 +292,19 @@ MTC阶段是指任务执行管道中的组件或步骤。
 3. 连接器  
    
 ### 生成器(Generator Stage)    
-![alt text](readme/image-5.png)
+![alt text](images/image-5.png)
 生成器阶段不接收来自相邻阶段的输入。它们计算结果并将其传递到两个方向 - 向前和向后。
 MTC 任务的执行从生成器阶段开始。   
 最重要的生成器阶段是CurrentState，它将当前机器人状态作为规划管道的起点。  
 监控生成器是监控另一个阶段（不相邻）的解决方案以使用该解决方案进行规划的阶段。  
 监控生成器的示例 - GeneratePose。它通常监控CurrentState或ModifyPlanningScene阶段。通过监控的解决方案CurrentState，该GeneratePose阶段可以找到它应该围绕其生成姿势的对象或框架。更多信息请参考[generating-stages](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/generating_stages.html#generating-stages)   
 ### 传播阶段（Propagating Stage）   
-![alt text](readme/image-6.png)   
+![alt text](images/image-6.png)   
 传播器从一个邻居状态接收解决方案，解决问题，然后将结果传播到另一侧的邻居。
 根据具体实施，此阶段可以向前、向后或双向传递解决方案。
 传播阶段的示例 移动到某个姿势。此阶段通常用于接近要拾取的物体。更多信息参考[propagating-stages](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/propagating_stages.html#propagating-stages)    
 ### 连接阶段(connecting-stages)  
-![alt text](readme/image-7.png)   
+![alt text](images/image-7.png)   
 连接器不会传播任何结果，但会尝试连接相邻阶段提供的开始和目标输入。
 连接阶段通常解决起始状态和目标状态之间的可行轨迹。更多信息参考[connecting-stages](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/connecting_stages.html#connecting-stages)  
 ### 包装器(wrappers)

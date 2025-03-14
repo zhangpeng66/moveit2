@@ -19,7 +19,8 @@ void test_first_plan(int argc, char* argv[])
 
   // Create the MoveIt MoveGroup Interface
   using moveit::planning_interface::MoveGroupInterface;
-  auto move_group_interface = MoveGroupInterface(node, "jaka_arm");
+  std::string group_name = "jaka_arm";
+  auto move_group_interface = MoveGroupInterface(node, group_name);
 
     // Specify a planning pipeline to be used for further planning 
   move_group_interface.setPlanningPipelineId("ompl");

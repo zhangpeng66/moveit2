@@ -1,6 +1,8 @@
 # <center>学习Moveit2</center>  
 - [学习Moveit2](#学习moveit2)
-  - [编译与安装](#编译与安装)
+  - [编译与运行](#编译与运行)
+    - [编译](#编译)
+    - [运行](#运行)
   - [发展历程](#发展历程)
     - [主要的功能](#主要的功能)
   - [Moveit2代码框架及概念](#moveit2代码框架及概念)
@@ -56,15 +58,23 @@
     - [阶段成本计算器（Cost calculator for Stages）](#阶段成本计算器cost-calculator-for-stages)
     - [规划和执行 MTC 任务](#规划和执行-mtc-任务)
 
-## 编译与安装
+## 编译与运行
+### 编译
 安装请参考[ROS MoveIT2（humble）安装总结](https://blog.csdn.net/woshigaowei5146/article/details/128131452),[官网](https://moveit.picknik.ai/main/doc/tutorials/getting_started/getting_started.html)
 colcon build --mixin release --parallel-workers 8
 wget https://github.com/ricab/scope_guard/blob/main/scope_guard.hpp
-运行增加日志Dubug格式，打印更多日志
-ros2 run hello_moveit hello_moveit --ros-args --log-level DEBUG
 将rst格式转md文件格式
 pandoc input.rst -f rst -t markdown -o output.md
 ros2 pkg create <package_name> --dependencies rclcpp std_msgs
+### 运行
+先运行gazebo程序
+ros2 launch jaka_zu5_gazebo jaka_zu5_bringup_gazebo.launch.py
+再运行move_group和显示rviz程序
+ros2 launch jaka_zu5_gazebo moveit_rviz2.launch.py 
+运行demo增加日志Dubug格式，打印更多日志
+ros2 run hello_moveit hello_moveit --ros-args --log-level DEBUG
+在RVIZ上面工具栏Panels/Add New Panel，添加RvizVisualToolsGui，点击Next
+![alt text](./images/image15.png)
 ## 发展历程
 MoveIt 2 是 MoveIt 的下一代版本，基于 ROS 2 开发，解决了 ROS 1 中的一些局限性，并增加了对新技术的支持。ROS 2 本身的推出使得 MoveIt 2 可以充分利用 ROS 2 的实时性、安全性和分布式通信能力，从而提升了机器人系统的性能和可靠性。
 

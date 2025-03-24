@@ -17,7 +17,7 @@ def generate_launch_description():
     robot_name_in_model = 'jaka_description'
 
     pkg_share = FindPackageShare(package=package_name).find(package_name) 
-    urdf_model_path = os.path.join(pkg_share, f'config/jaka_zu5.urdf.xacro')
+    urdf_model_path = os.path.join(pkg_share, f'config/gazebo_jaka_zu5.urdf.xacro')
 
     
     print("---", urdf_model_path)

@@ -66,7 +66,14 @@ wget https://github.com/ricab/scope_guard/blob/main/scope_guard.hpp
 将rst格式转md文件格式
 pandoc input.rst -f rst -t markdown -o output.md
 ros2 pkg create <package_name> --dependencies rclcpp std_msgs
+rk3588板子在foxy版本中还要安装
+rosdepc install -r --from-paths . --ignore-src --rosdistro foxy -y
+sudo apt install ros-foxy-eigen-stl-containers ros-foxy-geometric-shapes ros-foxy-srdfdom ros-foxy-ros-testing ros-foxy-moveit-resources-fanuc-description
+ros-foxy-moveit-resources-fanuc-moveit-config ros-foxy-moveit-resources-panda* ros-foxy-warehouse-ros ros-foxy-ompl ros-foxy-control-toolbox
+colcon build --mixin release --parallel-workers 2
 ### 运行
+killall -q gzserver || echo "未找到gzserver进程"
+killall -q gzclient || echo "未找到gzclient进程"
 先运行gazebo程序
 ros2 launch jaka_zu5_gazebo jaka_zu5_bringup_gazebo.launch.py
 再运行move_group和显示rviz程序
@@ -75,6 +82,9 @@ ros2 launch jaka_zu5_gazebo moveit_rviz2.launch.py
 ros2 run hello_moveit hello_moveit --ros-args --log-level DEBUG
 在RVIZ上面工具栏Panels/Add New Panel，添加RvizVisualToolsGui，点击Next
 ![alt text](./images/image15.png)
+
+如果单独想打开rviz和movegroup程序打开
+ros2 launch jaka_zu5_moveit_config demo.launch.py
 ## 发展历程
 MoveIt 2 是 MoveIt 的下一代版本，基于 ROS 2 开发，解决了 ROS 1 中的一些局限性，并增加了对新技术的支持。ROS 2 本身的推出使得 MoveIt 2 可以充分利用 ROS 2 的实时性、安全性和分布式通信能力，从而提升了机器人系统的性能和可靠性。
 
@@ -262,7 +272,9 @@ move_group监听主题/joint_states以确定当前状态信息 - 即确定机器
 ### 变换信息(Transform Information)
 move_group使用 ROS TF 库监控变换信息。这允许节点获取有关机器人姿势的全局信息（以及其他信息）。例如，ROS 导航堆栈将向 TF 发布地图框架和机器人基座框架之间的变换。 move_group可以使用 TF 找出此变换以供内部使用。请注意，move_group仅监听 TF。要从您的机器人发布 TF 信息，您需要robot_state_publisher在机器人上运行一个节点。
 ### 控制器接口 (Controller Interface) 
-move_group使用 FollowJointTrajectoryAction 接口与机器人上的控制器对话。这是一个 ROS 操作接口。机器人上的服务器需要为该操作提供服务 - 该服务器本身不提供move_group。 move_group将仅实例化一个客户端以与机器人上的该控制器操作服务器对话。  
+move_group使用 FollowJointTrajectoryAction 接口与机器人上的控制器对话。这是一个 ROS 操作接口。机器人上的服务器需要为该操作提供服务 - 该服务器本身不提供move_group。 move_group将仅实例化一个客户端以与机器人上的该控制器操作服务器对话。
+总控制类[MoveItControllerManager](./moveit2/moveit_core/controller_manager/include/moveit/controller_manager/controller_manager.h)定义很多虚函数，==》（继承关系）[MoveItSimpleControllerManager](./moveit2/moveit_plugins/moveit_simple_controller_manager/src/moveit_simple_controller_manager.cpp) 进行实例化，在初始化过程initialize()中对关节轨迹控制句柄[FollowJointTrajectoryControllerHandle](./moveit2/moveit_plugins/moveit_simple_controller_manager/include/moveit_simple_controller_manager/follow_joint_trajectory_controller_handle.h)和夹抓控制器句柄[GripperControllerHandle](./moveit2/moveit_plugins/moveit_simple_controller_manager/include/moveit_simple_controller_manager/gripper_controller_handle.h)进行构造，他们都定义sendTrajectory(const moveit_msgs::msg::RobotTrajectory& trajectory)函数，最终由客户端发送controller_action_client_->async_send_goal()，总结就是控制器通过关节轨迹控制句柄和夹抓控制句柄进行发送轨迹，自身还有控制器句柄[MoveItControllerHandle](./moveit2/moveit_core/controller_manager/include/moveit/controller_manager/controller_manager.h)==>(继承)类ActionBasedControllerHandleBase==》[ActionBasedControllerHandle](./moveit2/moveit_plugins/moveit_simple_controller_manager/include/moveit_simple_controller_manager/action_based_controller_handle.h)定义客户端去执行取消执行轨迹规划，服务端反馈结果，以及服务端一些状态等信息    
+执行此函数是在[TrajectoryExecutionManager::continuousExecutionThread()](./moveit2/moveit_ros/planning/trajectory_execution_manager/src/trajectory_execution_manager.cpp)函数。
 ### 规划场景(Planning Scene)  
 move_group使用规划场景监视器来维护规划场景，这是世界和机器人当前状态的表示。机器人状态可以包括任何附着在机器人上（由机器人携带）的物体，这些物体被认为是刚性附着在机器人上的。有关维护和更新规划场景的架构的更多详细信息，请参阅下面的**规划场景**部分。  
 ### 可扩展功能(Extensible Capabilities)
@@ -316,7 +328,8 @@ MTC 任务的执行从生成器阶段开始。
 ### 连接阶段(connecting-stages)  
 ![alt text](images/image-7.png)   
 连接器不会传播任何结果，但会尝试连接相邻阶段提供的开始和目标输入。
-连接阶段通常解决起始状态和目标状态之间的可行轨迹。更多信息参考[connecting-stages](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/connecting_stages.html#connecting-stages)  
+连接阶段通常解决起始状态和目标状态之间的可行轨迹。更多信息参考[connecting-stages](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/connecting_stages.html#connecting-stages) 
+![alt text](./images/image16.png) 
 ### 包装器(wrappers)
 包装器封装了另一个阶段来修改或过滤结果。
 包装器示例 -Compute IK for Generate Grasp Pose阶段。Generate Grasp Pose阶段将产生笛卡尔姿势解决方案。通过封装一个Compute IK阶段围绕着Generate Pose阶段，笛卡尔姿势解决方案可用于Generate Pose阶段产生 IK 解决方案（即产生机器人的关节状态配置以达到姿势）。更多信息参考[wrappers](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/wrappers.html#wrappers)
@@ -357,7 +370,7 @@ task->add(std::move(container));
 ### 设置规划求解器 （Setting planning solvers） 
 进行运动规划的阶段需要求解器信息。   
 MTC 中可用的求解器：
-1. [PipelinePlanner](./moveit_task_constructor/core/src/solvers/pipeline_planner.cpp)- 使用 MoveIt 的规划管道
+1. [PipelinePlanner](./moveit_task_constructor/core/src/solvers/pipeline_planner.cpp)- 使用 MoveIt 的规划管道,默认ompl
 2. [JointInterpolation](./moveit_task_constructor/core/src/solvers/joint_interpolation.cpp)- 在起始和目标关节状态之间进行插值。它不支持复杂的运动。
 3. [CartesianPath](./moveit_task_constructor/core/src/solvers/cartesian_path.cpp)- 在笛卡尔空间中沿直线移动末端执行器。  
 

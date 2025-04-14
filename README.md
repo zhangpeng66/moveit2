@@ -69,7 +69,7 @@ ros2 pkg create <package_name> --dependencies rclcpp std_msgs
 rk3588板子在foxy版本中还要安装
 rosdepc install -r --from-paths . --ignore-src --rosdistro foxy -y
 sudo apt install ros-foxy-eigen-stl-containers ros-foxy-geometric-shapes ros-foxy-srdfdom ros-foxy-ros-testing ros-foxy-moveit-resources-fanuc-description
-ros-foxy-moveit-resources-fanuc-moveit-config ros-foxy-moveit-resources-panda* ros-foxy-warehouse-ros ros-foxy-ompl ros-foxy-control-toolbox
+ros-foxy-moveit-resources-fanuc-moveit-config ros-foxy-moveit-resources-panda* ros-foxy-warehouse-ros ros-foxy-ompl ros-foxy-control-toolbox ros-foxy-controller-manager ros-foxy-moveit-msgs
 colcon build --mixin release --parallel-workers 2
 ### 运行
 killall -q gzserver || echo "未找到gzserver进程"
@@ -273,8 +273,14 @@ move_group监听主题/joint_states以确定当前状态信息 - 即确定机器
 move_group使用 ROS TF 库监控变换信息。这允许节点获取有关机器人姿势的全局信息（以及其他信息）。例如，ROS 导航堆栈将向 TF 发布地图框架和机器人基座框架之间的变换。 move_group可以使用 TF 找出此变换以供内部使用。请注意，move_group仅监听 TF。要从您的机器人发布 TF 信息，您需要robot_state_publisher在机器人上运行一个节点。
 ### 控制器接口 (Controller Interface) 
 move_group使用 FollowJointTrajectoryAction 接口与机器人上的控制器对话。这是一个 ROS 操作接口。机器人上的服务器需要为该操作提供服务 - 该服务器本身不提供move_group。 move_group将仅实例化一个客户端以与机器人上的该控制器操作服务器对话。
-总控制类[MoveItControllerManager](./moveit2/moveit_core/controller_manager/include/moveit/controller_manager/controller_manager.h)定义很多虚函数，==》（继承关系）[MoveItSimpleControllerManager](./moveit2/moveit_plugins/moveit_simple_controller_manager/src/moveit_simple_controller_manager.cpp) 进行实例化，在初始化过程initialize()中对关节轨迹控制句柄[FollowJointTrajectoryControllerHandle](./moveit2/moveit_plugins/moveit_simple_controller_manager/include/moveit_simple_controller_manager/follow_joint_trajectory_controller_handle.h)和夹抓控制器句柄[GripperControllerHandle](./moveit2/moveit_plugins/moveit_simple_controller_manager/include/moveit_simple_controller_manager/gripper_controller_handle.h)进行构造，他们都定义sendTrajectory(const moveit_msgs::msg::RobotTrajectory& trajectory)函数，最终由客户端发送controller_action_client_->async_send_goal()，总结就是控制器通过关节轨迹控制句柄和夹抓控制句柄进行发送轨迹，自身还有控制器句柄[MoveItControllerHandle](./moveit2/moveit_core/controller_manager/include/moveit/controller_manager/controller_manager.h)==>(继承)类ActionBasedControllerHandleBase==》[ActionBasedControllerHandle](./moveit2/moveit_plugins/moveit_simple_controller_manager/include/moveit_simple_controller_manager/action_based_controller_handle.h)定义客户端去执行取消执行轨迹规划，服务端反馈结果，以及服务端一些状态等信息    
+总控制类[MoveItControllerManager](./moveit2/moveit_core/controller_manager/include/moveit/controller_manager/controller_manager.h)定义很多虚函数，---》（继承关系）[MoveItSimpleControllerManager](./moveit2/moveit_plugins/moveit_simple_controller_manager/src/moveit_simple_controller_manager.cpp) 进行实例化，在初始化过程initialize()中对关节轨迹控制句柄[FollowJointTrajectoryControllerHandle](./moveit2/moveit_plugins/moveit_simple_controller_manager/include/moveit_simple_controller_manager/follow_joint_trajectory_controller_handle.h)和夹抓控制器句柄[GripperControllerHandle](./moveit2/moveit_plugins/moveit_simple_controller_manager/include/moveit_simple_controller_manager/gripper_controller_handle.h)进行构造，他们都定义sendTrajectory(const moveit_msgs::msg::RobotTrajectory& trajectory)函数，最终由客户端发送controller_action_client_->async_send_goal()，总结就是控制器通过关节轨迹控制句柄和夹抓控制句柄进行发送轨迹，自身还有控制器句柄[MoveItControllerHandle](./moveit2/moveit_core/controller_manager/include/moveit/controller_manager/controller_manager.h)---》（继承关系）类ActionBasedControllerHandleBase==》[ActionBasedControllerHandle](./moveit2/moveit_plugins/moveit_simple_controller_manager/include/moveit_simple_controller_manager/action_based_controller_handle.h)定义客户端去执行取消执行轨迹规划，服务端反馈结果，以及服务端一些状态等信息    
 执行此函数是在[TrajectoryExecutionManager::continuousExecutionThread()](./moveit2/moveit_ros/planning/trajectory_execution_manager/src/trajectory_execution_manager.cpp)函数。
+在***foxy***版本中先运行驱动
+ros2 launch moveit_arm_control arm_control.launch.py 
+再运行move_group节点
+ros2 launch moveit_arm_control demo.launch.py
+最后运行ros2 run rqt_graph rqt_graph 可以得到如下图
+![alt text](image.png)
 ### 规划场景(Planning Scene)  
 move_group使用规划场景监视器来维护规划场景，这是世界和机器人当前状态的表示。机器人状态可以包括任何附着在机器人上（由机器人携带）的物体，这些物体被认为是刚性附着在机器人上的。有关维护和更新规划场景的架构的更多详细信息，请参阅下面的**规划场景**部分。  
 ### 可扩展功能(Extensible Capabilities)

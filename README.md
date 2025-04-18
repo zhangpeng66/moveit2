@@ -3,6 +3,7 @@
   - [编译与运行](#编译与运行)
     - [编译](#编译)
     - [运行](#运行)
+  - [foxy版本运行成功日志](#foxy版本运行成功日志)
   - [发展历程](#发展历程)
     - [主要的功能](#主要的功能)
   - [Moveit2代码框架及概念](#moveit2代码框架及概念)
@@ -82,9 +83,134 @@ ros2 launch jaka_zu5_gazebo moveit_rviz2.launch.py
 ros2 run hello_moveit hello_moveit --ros-args --log-level DEBUG
 在RVIZ上面工具栏Panels/Add New Panel，添加RvizVisualToolsGui，点击Next
 ![alt text](./images/image15.png)
-
 如果单独想打开rviz和movegroup程序打开
 ros2 launch jaka_zu5_moveit_config demo.launch.py
+
+## foxy版本运行成功日志
+```log
+[move_group-3] [INFO] [1744704405.639501774] [moveit_move_group_default_capabilities.move_action_capability]: Received request
+[move_group-3] [INFO] [1744704405.639688737] [moveit_move_group_default_capabilities.move_action_capability]: executing..
+[move_group-3] [INFO] [1744704405.648343564] [moveit_move_group_default_capabilities.move_action_capability]: Combined planning and execution request received for MoveGroup action. Forwarding to planning and execution pipeline.
+[move_group-3] [INFO] [1744704405.648636404] [moveit_ros.plan_execution]: Planning attempt 1 of at most 1
+[move_group-3] [INFO] [1744704405.648699697] [moveit_move_group_capabilities_base.move_group_capability]: Using planning pipeline 'move_group'
+[move_group-3] [INFO] [1744704405.649565968] [moveit.ompl_planning.model_based_planning_context]: Planner configuration 'jaka_arm' will use planner 'geometric::RRTConnect'. Additional configuration parameters will be set when the planner is constructed.
+[move_group-3] [INFO] [1744704405.650184024] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:220 - jaka_arm/jaka_arm: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744704405.650207941] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:220 - jaka_arm/jaka_arm: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744704405.652468119] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:220 - jaka_arm/jaka_arm: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744704405.652524412] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:220 - jaka_arm/jaka_arm: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744704405.660933358] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:354 - jaka_arm/jaka_arm: Created 4 states (2 start + 2 goal)
+[move_group-3] [INFO] [1744704405.662366934] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:354 - jaka_arm/jaka_arm: Created 4 states (2 start + 2 goal)
+[move_group-3] [INFO] [1744704405.664518900] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:354 - jaka_arm/jaka_arm: Created 4 states (2 start + 2 goal)
+[move_group-3] [INFO] [1744704405.664867450] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:354 - jaka_arm/jaka_arm: Created 4 states (2 start + 2 goal)
+[move_group-3] [INFO] [1744704405.665017370] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/tools/multiplan/src/ParallelPlan.cpp:135 - ParallelPlan::solve(): Solution found by one or more threads in 0.015072 seconds
+[move_group-3] [INFO] [1744704405.665459547] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:220 - jaka_arm/jaka_arm: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744704405.665495132] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:220 - jaka_arm/jaka_arm: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744704405.666049603] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:354 - jaka_arm/jaka_arm: Created 5 states (2 start + 3 goal)
+[move_group-3] [INFO] [1744704405.666172689] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:354 - jaka_arm/jaka_arm: Created 5 states (2 start + 3 goal)
+[move_group-3] [INFO] [1744704405.667794394] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:220 - jaka_arm/jaka_arm: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744704405.667861770] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:220 - jaka_arm/jaka_arm: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744704405.669696105] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:354 - jaka_arm/jaka_arm: Created 4 states (2 start + 2 goal)
+[move_group-3] [INFO] [1744704405.670164824] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:354 - jaka_arm/jaka_arm: Created 5 states (3 start + 2 goal)
+[move_group-3] [INFO] [1744704405.670344787] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/tools/multiplan/src/ParallelPlan.cpp:135 - ParallelPlan::solve(): Solution found by one or more threads in 0.005056 seconds
+[move_group-3] [INFO] [1744704405.670586876] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:220 - jaka_arm/jaka_arm: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744704405.670623918] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:220 - jaka_arm/jaka_arm: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744704405.671166723] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:354 - jaka_arm/jaka_arm: Created 5 states (2 start + 3 goal)
+[move_group-3] [INFO] [1744704405.672772968] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTConnect.cpp:354 - jaka_arm/jaka_arm: Created 5 states (2 start + 3 goal)
+[move_group-3] [INFO] [1744704405.672982973] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/tools/multiplan/src/ParallelPlan.cpp:135 - ParallelPlan::solve(): Solution found by one or more threads in 0.002515 seconds
+[move_group-3] [INFO] [1744704405.680462648] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/src/SimpleSetup.cpp:179 - SimpleSetup: Path simplification took 0.007390 seconds and changed from 3 to 2 states
+[move_group-3] [INFO] [1744704405.686061321] [moveit_ros.trajectory_execution_manager]: Validating trajectory with allowed_start_tolerance 0.001
+[move_group-3] [INFO] [1744704405.688002408] [moveit_ros.trajectory_execution_manager]: Starting trajectory execution ...
+[move_group-3] [INFO] [1744704405.688103035] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: sending trajectory to jaka_arm_controller
+[move_group-3] [INFO] [1744704405.689218103] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: jaka_arm_controller started execution
+[move_group-3] [INFO] [1744704405.689250187] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Goal request accepted!
+[rviz2-1] [INFO] [1744704405.939802086] [move_group_interface]: Plan and Execute request accepted
+[move_group-3] [INFO] [1744704407.644389150] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Controller jaka_arm_controller successfully finished
+[move_group-3] [INFO] [1744704407.663883147] [moveit_ros.trajectory_execution_manager]: Completed trajectory execution with status SUCCEEDED ...
+[move_group-3] [INFO] [1744704407.668175414] [moveit_move_group_default_capabilities.move_action_capability]: Solution was found and executed.
+[rviz2-1] [INFO] [1744704407.943936643] [move_group_interface]: Plan and Execute request complete!
+
+
+
+[move_group-3] [INFO] [1744704491.765415619] [moveit_move_group_default_capabilities.move_action_capability]: Received request
+[move_group-3] [INFO] [1744704491.765622707] [moveit_move_group_default_capabilities.move_action_capability]: executing..
+[move_group-3] [INFO] [1744704491.770048847] [moveit_move_group_default_capabilities.move_action_capability]: Planning request received for MoveGroup action. Forwarding to planning pipeline.
+[move_group-3] [INFO] [1744704491.770114765] [moveit_move_group_capabilities_base.move_group_capability]: Using planning pipeline 'move_group'
+[move_group-3] [INFO] [1744704491.771000868] [moveit.ompl_planning.model_based_planning_context]: Planner configuration 'jaka_arm[RRTstarkConfigDefault]' will use planner 'geometric::RRTstar'. Additional configuration parameters will be set when the planner is constructed.
+[move_group-3] [INFO] [1744704491.771597631] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:119 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: No optimization objective specified. Defaulting to optimizing path length for the allowed planning time.
+[move_group-3] [INFO] [1744704491.772306688] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:203 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Started planning with 1 states. Seeking a solution better than 0.00000.
+[move_group-3] [INFO] [1744704491.772324772] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:236 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Initial k-nearest value of 310
+[move_group-3] [INFO] [1744704491.772359481] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:203 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Started planning with 1 states. Seeking a solution better than 0.00000.
+[move_group-3] [INFO] [1744704491.772505026] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:236 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Initial k-nearest value of 310
+[move_group-3] [INFO] [1744704491.772572694] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:203 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Started planning with 1 states. Seeking a solution better than 0.00000.
+[move_group-3] [INFO] [1744704491.772621404] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:236 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Initial k-nearest value of 310
+[move_group-3] [INFO] [1744704491.772652613] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:203 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Started planning with 1 states. Seeking a solution better than 0.00000.
+[move_group-3] [INFO] [1744704491.772673030] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:236 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Initial k-nearest value of 310
+[move_group-3] [INFO] [1744704491.785515397] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:480 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Found an initial solution with a cost of 0.70 in 43 iterations (33 vertices in the graph)
+[move_group-3] [INFO] [1744704491.795403408] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:480 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Found an initial solution with a cost of 0.70 in 29 iterations (23 vertices in the graph)
+[move_group-3] [INFO] [1744704491.808057938] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:480 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Found an initial solution with a cost of 0.70 in 44 iterations (25 vertices in the graph)
+[move_group-3] [INFO] [1744704491.808579158] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:480 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Found an initial solution with a cost of 0.70 in 78 iterations (59 vertices in the graph)
+[rviz2-1] [INFO] [1744704492.065924978] [move_group_interface]: Planning request accepted
+[move_group-3] [INFO] [1744704496.771929745] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:595 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Created 3589 new states. Checked 6442255 rewire options. 10 goal states in tree. Final solution cost 0.698
+[move_group-3] [INFO] [1744704496.772087540] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:595 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Created 3523 new states. Checked 6207526 rewire options. 10 goal states in tree. Final solution cost 0.698
+[move_group-3] [INFO] [1744704496.773495447] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:595 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Created 3397 new states. Checked 5771503 rewire options. 10 goal states in tree. Final solution cost 0.698
+[move_group-3] [INFO] [1744704496.774198962] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRTstar.cpp:595 - jaka_arm/jaka_arm[RRTstarkConfigDefault]: Created 3496 new states. Checked 6112756 rewire options. 10 goal states in tree. Final solution cost 0.698
+[move_group-3] [INFO] [1744704496.774320298] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/tools/multiplan/src/ParallelPlan.cpp:135 - ParallelPlan::solve(): Solution found by one or more threads in 5.002265 seconds
+[move_group-3] [INFO] [1744704496.774548970] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/src/SimpleSetup.cpp:179 - SimpleSetup: Path simplification took 0.000126 seconds and changed from 2 to 2 states
+[move_group-3] [INFO] [1744704496.778464390] [moveit_move_group_default_capabilities.move_action_capability]: Motion plan was computed succesfully.
+[rviz2-1] [INFO] [1744704497.077427569] [move_group_interface]: Planning request complete!
+[rviz2-1] [INFO] [1744704497.177658988] [move_group_interface]: time taken to generate plan: 5.00279 seconds
+
+
+[move_group-3] [INFO] [1744943999.222171676] [moveit_move_group_default_capabilities.move_action_capability]: Received request
+[move_group-3] [INFO] [1744943999.222345219] [moveit_move_group_default_capabilities.move_action_capability]: executing..
+[move_group-3] [INFO] [1744943999.230292029] [moveit_move_group_default_capabilities.move_action_capability]: Combined planning and execution request received for MoveGroup action. Forwarding to planning and execution pipeline.
+[move_group-3] [INFO] [1744943999.230511947] [moveit_ros.plan_execution]: Planning attempt 1 of at most 1
+[move_group-3] [INFO] [1744943999.230557447] [moveit_move_group_capabilities_base.move_group_capability]: Using planning pipeline 'move_group'
+[move_group-3] [INFO] [1744943999.231661414] [moveit.ompl_planning.model_based_planning_context]: Planner configuration 'jaka_arm[RRTkConfigDefault]' will use planner 'geometric::RRT'. Additional configuration parameters will be set when the planner is constructed.
+[move_group-3] [INFO] [1744943999.232421212] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:119 - jaka_arm/jaka_arm[RRTkConfigDefault]: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744943999.232449503] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:119 - jaka_arm/jaka_arm[RRTkConfigDefault]: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744943999.232476045] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:119 - jaka_arm/jaka_arm[RRTkConfigDefault]: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744943999.240376188] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:119 - jaka_arm/jaka_arm[RRTkConfigDefault]: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744943999.244116258] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:227 - jaka_arm/jaka_arm[RRTkConfigDefault]: Created 13 states
+[move_group-3] [INFO] [1744943999.247670534] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:227 - jaka_arm/jaka_arm[RRTkConfigDefault]: Created 54 states
+[move_group-3] [INFO] [1744943999.250088178] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:227 - jaka_arm/jaka_arm[RRTkConfigDefault]: Created 17 states
+[move_group-3] [INFO] [1744943999.251163852] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:227 - jaka_arm/jaka_arm[RRTkConfigDefault]: Created 69 states
+[move_group-3] [INFO] [1744943999.251251353] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/tools/multiplan/src/ParallelPlan.cpp:135 - ParallelPlan::solve(): Solution found by one or more threads in 0.019054 seconds
+[move_group-3] [INFO] [1744943999.251752732] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:119 - jaka_arm/jaka_arm[RRTkConfigDefault]: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744943999.251773149] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:119 - jaka_arm/jaka_arm[RRTkConfigDefault]: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744943999.251865316] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:119 - jaka_arm/jaka_arm[RRTkConfigDefault]: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744943999.251883108] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:119 - jaka_arm/jaka_arm[RRTkConfigDefault]: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744943999.254254376] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:227 - jaka_arm/jaka_arm[RRTkConfigDefault]: Created 10 states
+[move_group-3] [INFO] [1744943999.254664754] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:227 - jaka_arm/jaka_arm[RRTkConfigDefault]: Created 9 states
+[move_group-3] [INFO] [1744943999.257549067] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:227 - jaka_arm/jaka_arm[RRTkConfigDefault]: Created 21 states
+[move_group-3] [INFO] [1744943999.263239526] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:227 - jaka_arm/jaka_arm[RRTkConfigDefault]: Created 34 states
+[move_group-3] [INFO] [1744943999.263316527] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/tools/multiplan/src/ParallelPlan.cpp:135 - ParallelPlan::solve(): Solution found by one or more threads in 0.011691 seconds
+[move_group-3] [INFO] [1744943999.263498820] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:119 - jaka_arm/jaka_arm[RRTkConfigDefault]: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744943999.263537320] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:119 - jaka_arm/jaka_arm[RRTkConfigDefault]: Starting planning with 1 states already in datastructure
+[move_group-3] [INFO] [1744943999.269572241] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:227 - jaka_arm/jaka_arm[RRTkConfigDefault]: Created 8 states
+[move_group-3] [INFO] [1744943999.275450243] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/planners/rrt/src/RRT.cpp:227 - jaka_arm/jaka_arm[RRTkConfigDefault]: Created 50 states
+[move_group-3] [INFO] [1744943999.275564286] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/tools/multiplan/src/ParallelPlan.cpp:135 - ParallelPlan::solve(): Solution found by one or more threads in 0.012134 seconds
+[move_group-3] [INFO] [1744943999.275667537] [ompl]: /tmp/binarydeb/ros-foxy-ompl-1.5.0/src/ompl/geometric/src/SimpleSetup.cpp:179 - SimpleSetup: Path simplification took 0.000003 seconds and changed from 2 to 2 states
+[move_group-3] [INFO] [1744943999.279240772] [moveit_ros.trajectory_execution_manager]: Validating trajectory with allowed_start_tolerance 0.001
+[move_group-3] [INFO] [1744943999.280992535] [moveit_ros.trajectory_execution_manager]: Starting trajectory execution ...
+[move_group-3] [INFO] [1744943999.281082369] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: sending trajectory to jaka_arm_controller
+[move_group-3] [INFO] [1744943999.282191586] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: jaka_arm_controller started execution
+[move_group-3] [INFO] [1744943999.282205002] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Goal request accepted!
+[rviz2-1] [INFO] [1744943999.522450891] [move_group_interface]: Plan and Execute request accepted
+[move_group-3] [WARN] [1744944000.872688714] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: waitForExecution timed out
+[move_group-3] [ERROR] [1744944000.872775048] [moveit_ros.trajectory_execution_manager]: Controller is taking too long to execute trajectory (the expected upper bound for the trajectory execution was 1.590320 seconds). Stopping trajectory.
+[move_group-3] [INFO] [1744944000.872824340] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Cancelling execution for jaka_arm_controller
+[move_group-3] [INFO] [1744944001.042081822] [moveit_ros.trajectory_execution_manager]: Completed trajectory execution with status TIMED_OUT ...
+[move_group-3] [INFO] [1744944001.042431533] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Controller jaka_arm_controller successfully finished
+[move_group-3] [INFO] [1744944001.051117432] [moveit_move_group_default_capabilities.move_action_capability]: Timeout reached
+[rviz2-1] [INFO] [1744944001.325939211] [move_group_interface]: Plan and Execute request aborted
+[rviz2-1] [ERROR] [1744944001.426199799] [move_group_interface]: MoveGroupInterface::move() failed or timeout reached
+
+```      
+出现Controller is taking too long to execute trajectory (the expected upper bound for the trajectory execution was 1.590320 seconds). Stopping trajectory超时的错误，需要修改以下两个参数来调整超时时间    
+allowed_goal_duration_margin: 1.5
+allowed_execution_duration_scaling: 1.1
+![alt text](image-1.png)
 ## 发展历程
 MoveIt 2 是 MoveIt 的下一代版本，基于 ROS 2 开发，解决了 ROS 1 中的一些局限性，并增加了对新技术的支持。ROS 2 本身的推出使得 MoveIt 2 可以充分利用 ROS 2 的实时性、安全性和分布式通信能力，从而提升了机器人系统的性能和可靠性。
 
@@ -286,6 +412,7 @@ move_group使用规划场景监视器来维护规划场景，这是世界和机�
 ### 可扩展功能(Extensible Capabilities)
 move_group结构易于扩展。拾取和放置、运动学、运动规划等单个功能实际上是作为具有共同基类的单独插件实现的。这些插件可通过一组 ROS yaml 参数和使用 ROS pluginlib 库使用 ROS 进行配置。大多数用户无需配置 move_group 插件，因为它们会在 MoveIt 设置助手生成的启动文件中自动配置。
 ![alt text](images/image-8.png)  
+在页面上点击plan和execute，就会执行函数[MoveGroupMoveAction::executeMoveCallbackPlanAndExecute](./moveit2/moveit_ros/move_group/src/default_capabilities/move_action_capability.cpp)
 ## 规划场景监控 (Planning Scene Monitor) 
 规划场景([planning scene](./moveit2/moveit_core/planning_scene/src/pyplanning_scene.cpp))是一个用于存储机器人周围环境表示以及机器人本身状态的对象。对象（planning scene）的内部状态通常由一个组件（[planning_scene_monitor](./moveit2/moveit_ros/planning/planning_scene_monitor/src/planning_scene_monitor.cpp)）维护，该组件支持以线程安全的方式读取和写入状态。  
 具体来说，move_group节点和 rviz 规划场景插件都维护着自己的规划场景监视器（PSM）。move_group节点的 PSM监听主题/planning_scene，并将其规划场景状态发布到主题monitored_planning_scene。后者由 rviz 规划场景插件监听。  

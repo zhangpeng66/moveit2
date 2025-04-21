@@ -431,7 +431,7 @@ MoveIt 中的 3D 感知由占用地图监视器 （occupancy map monitor）处�
 深度图像占用图更新器包含其自己的自过滤器，即它将从深度图中删除机器人的可见部分。它使用有关机器人的当前信息（机器人状态）来执行此操作。  
 ## 轨迹处理（Trajectory Processing）
 ### 时间参数化 （Time parameterization）
-运动规划器通常仅生成“路径”，即没有与路径相关联的时间信息。MoveIt 包含几种轨迹处理算法，这些算法可以在这些路径上工作并生成适当时间参数化的轨迹，考虑到对各个关节施加的最大速度和加速度限制。这些限制是从joint_limits.yaml为每个机器人指定的特殊配置文件中读取的。配置文件是可选的，它会覆盖 URDF 中的任何速度或加速度限制。截至 2023 年 1 月，推荐的算法是TimeOptimalTrajectoryGeneration (TOTG)。此算法的一个警告是机器人必须在静止时开始和结束。默认情况下，TOTG 时间步长为 0.1 。相关代码见[time_optimal_trajectory_generation.cpp](./moveit2/moveit_core/trajectory_processing/src/time_optimal_trajectory_generation.cpp)  
+运动规划器通常仅生成“路径”，即没有与路径相关联的时间信息。MoveIt 包含几种轨迹处理算法，这些算法可以在这些路径上工作并生成适当时间参数化的轨迹，考虑到对各个关节施加的最大速度和加速度限制。这些限制是从***joint_limits.yaml***为每个机器人指定的特殊配置文件中读取的。配置文件是可选的，它会覆盖 URDF 中的任何速度或加速度限制。截至 2023 年 1 月，推荐的算法是TimeOptimalTrajectoryGeneration (TOTG)。此算法的一个警告是机器人必须在静止时开始和结束。默认情况下，TOTG 时间步长为 0.1 。相关代码见[time_optimal_trajectory_generation.cpp](./moveit2/moveit_core/trajectory_processing/src/time_optimal_trajectory_generation.cpp)  
 ## MoveIt 任务构造器(MoveIt Task Constructor)
 ### 什么是 MoveIt 任务构造器?  
 MoveIt 任务构造器 [MTC](./moveit_task_constructor) 框架有助于将复杂的规划任务分解为多个相互依赖的子任务。

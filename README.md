@@ -13,7 +13,7 @@
   - [运动规划（Motion Planning）](#运动规划motion-planning)
     - [运动规划请求](#运动规划请求)
     - [运动规划应答](#运动规划应答)
-    - [运动规划请求适配器planning\_request\_adapter.cpp](#运动规划请求适配器planning_request_adaptercpp)
+    - [运动规划请求适配器](#运动规划请求适配器)
     - [检查开始状态边界 （CheckStartStateBounds）](#检查开始状态边界-checkstartstatebounds)
     - [验证工作空间边界 （ValidateWorkspaceBounds）](#验证工作空间边界-validateworkspacebounds)
     - [检查启动状态碰撞 （CheckStartStateCollision）](#检查启动状态碰撞-checkstartstatecollision)
@@ -300,8 +300,8 @@ MoveIt 的默认逆运动学插件是使用KDL基于雅可比矩阵的数值求�
 5. 用户指定的约束：也可以使用用户定义的回调指定自己的约束。   
 ### 运动规划应答   
 move_group节点将根据您的运动计划请求生成所需轨迹。此轨迹将使手臂（或任何关节组）移动到所需位置。请注意，move_group产生的结果是轨迹，而不仅仅是路径。move_group 将使用所需的最大速度和加速度（如果指定）来生成遵循关节级速度和加速度约束的轨迹。
-### 运动规划请求适配器[planning_request_adapter.cpp](./moveit2/moveit_core/planning_request_adapter/src/planning_request_adapter.cpp)
-规划请求适配器允许预处理运动规划请求和后处理运动规划响应。预处理在几种情况下很有用，例如当机器人的起始状态略微超出机器人指定的关节限制时。其他几个操作需要后处理，例如将为机器人生成的路径转换为时间参数化的轨迹。MoveIt 提供了一组默认的运动规划适配器，每个适配器都执行非常具体的功能。
+### 运动规划请求适配器
+规划请求适配器[planning_request_adapter.cpp](./moveit2/moveit_core/planning_request_adapter/src/planning_request_adapter.cpp)允许预处理运动规划请求和后处理运动规划响应。预处理在几种情况下很有用，例如当机器人的起始状态略微超出机器人指定的关节限制时。其他几个操作需要后处理，例如将为机器人生成的路径转换为时间参数化的轨迹。MoveIt 提供了一组默认的运动规划适配器，每个适配器都执行非常具体的功能。
 ![alt text](images/image5.png)   
 ### 检查开始状态边界 （CheckStartStateBounds）  
 在这种情况下，运动规划器无法进行规划，因为它会认为起始状态超出了关节限制。 “CheckStartStateBounds”规划请求适配器将通过将起始状态移动到关节限制来“修复”起始状态。  
@@ -313,6 +313,17 @@ move_group节点将根据您的运动计划请求生成所需轨迹。此轨迹�
 运动规划器通常会生成“运动路径”，即不遵循任何速度或加速度约束且不进行时间参数化的路径。此适配器将通过应用速度和加速度约束来“时间参数化”运动规划。   
 ### 解析约束帧（ResolveConstraintFrames）   
 可以使用子帧设置目标约束，（例如，帧中的姿势目标cup/handle，其中handle是对象上的子帧cup）。此适配器将约束框架更改为对象或机器人帧（例如cup）。   
+![alt text](image-2.png)
+在配置文件[ompl_planning.yaml](./jaka_zu5_moveit_config/config/ompl_planning.yaml)中有具体配置方法
+```yaml
+request_adapters: >-
+  default_planner_request_adapters/AddTimeOptimalParameterization
+  default_planner_request_adapters/ResolveConstraintFrames
+  default_planner_request_adapters/FixWorkspaceBounds
+  default_planner_request_adapters/FixStartStateBounds
+  default_planner_request_adapters/FixStartStateCollision
+  default_planner_request_adapters/FixStartStatePathConstraints
+```
 ## 混合规划（Hybrid Planning）[hybrid_planning_manager.cpp](./moveit2/moveit_ros/hybrid_planning/hybrid_planning_manager/hybrid_planning_manager_component/src/hybrid_planning_manager.cpp) 
 MoveIt 的运动规划架构遵循“感知-规划-执行”方法。为了规划和执行运动，首先感知环境和机器人状态（“感知”），然后规划器计算机器人轨迹（“规划”），最后使用轨迹控制器一次性执行（“执行”）。   
 MoveIt 的混合规划架构结合了一对全局和局部规划器，它们并行且循环运行，具有不同的规划速度和问题范围。   
@@ -431,7 +442,91 @@ MoveIt 中的 3D 感知由占用地图监视器 （occupancy map monitor）处�
 深度图像占用图更新器包含其自己的自过滤器，即它将从深度图中删除机器人的可见部分。它使用有关机器人的当前信息（机器人状态）来执行此操作。  
 ## 轨迹处理（Trajectory Processing）
 ### 时间参数化 （Time parameterization）
-运动规划器通常仅生成“路径”，即没有与路径相关联的时间信息。MoveIt 包含几种轨迹处理算法，这些算法可以在这些路径上工作并生成适当时间参数化的轨迹，考虑到对各个关节施加的最大速度和加速度限制。这些限制是从***joint_limits.yaml***为每个机器人指定的特殊配置文件中读取的。配置文件是可选的，它会覆盖 URDF 中的任何速度或加速度限制。截至 2023 年 1 月，推荐的算法是TimeOptimalTrajectoryGeneration (TOTG)。此算法的一个警告是机器人必须在静止时开始和结束。默认情况下，TOTG 时间步长为 0.1 。相关代码见[time_optimal_trajectory_generation.cpp](./moveit2/moveit_core/trajectory_processing/src/time_optimal_trajectory_generation.cpp)  
+MoveIt 支持多种算法，用于对运动轨迹进行后处理，添加时间戳和速度/加速度值。目前 MoveIt 默认提供三种算法：
+1. 迭代抛物线时间参数化,[迭代抛物线时间参数化算法](./moveit2/moveit_core/trajectory_processing/src/iterative_spline_parameterization.cpp)在运动规划流水线中默认用作规划请求适配器，如本教程中所述。尽管MoveIt 使用的迭代抛物线时间参数化算法多年来已被数百个机器人使用，但它仍存在已知的错误。
+2. 迭代样条参数化,[迭代样条参数化算法](./moveit2/moveit_core/trajectory_processing/src/iterative_time_parameterization.cpp)已与PR 382合并，以解决这些问题。虽然初步实验结果非常有希望，但在完全取代迭代抛物线时间参数化算法之前，我们仍在等待社区的更多反馈。
+3. 时间最优轨迹生成,PR #809和#1365中引入的时间最优轨迹生成方法可生成具有非常平滑且连续速度曲线的轨迹。该方法基于将路径段拟合到原始轨迹，然后从优化路径中采样新的航点。这与严格的时间参数化方法不同，因为生成的航点可能会在一定公差范围内偏离原始轨迹。因此，使用此方法时可能需要进行额外的碰撞检查。运动规划器通常仅生成“路径”，即没有与路径相关联的时间信息。MoveIt 包含几种轨迹处理算法，这些算法可以在这些路径上工作并生成适当时间参数化的轨迹，考虑到对各个关节施加的最大速度和加速度限制。这些限制是从***joint_limits.yaml***为每个机器人指定的特殊配置文件中读取的。配置文件是可选的，它会覆盖 URDF 中的任何速度或加速度限制。截至 2023 年 1 月，推荐的算法是TimeOptimalTrajectoryGeneration (TOTG)。此算法的一个警告是机器人必须在静止时开始和结束。默认情况下，TOTG 时间步长为 0.1 。相关代码见[time_optimal_trajectory_generation.cpp](./moveit2/moveit_core/trajectory_processing/src/time_optimal_trajectory_generation.cpp) 
+当轨迹运动速度较慢且轨迹点较多的情况下，可优先考虑TOTG；当轨迹点较少且速度较快时，为避免机械臂在启停时出现电机冲击，可优先考虑ISTP，但在高速情况下容易出现关节速度超限；一般情况下，可默认IPTP
+```log
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:52.994][jaka_driver_component.cpp][4982]: Number of points: 18
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:52.999][jaka_driver_component.cpp][5002]: Sending joint move: -3.744725 1.725417 1.910916 3.197678 -4.759129 1.196649, 0.000000 0
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.000][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.744725 1.725417 1.910916 3.197678 -4.759129 1.196649, 0.000000 0
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.000][jaka_driver_component.cpp][5002]: Sending joint move: -3.744548 1.730417 1.907144 3.196991 -4.758770 1.196728, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.004][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.744548 1.730417 1.907144 3.196991 -4.758770 1.196728, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.004][jaka_driver_component.cpp][5002]: Sending joint move: -3.744017 1.745417 1.895827 3.194929 -4.757693 1.196964, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.013][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.744017 1.745417 1.895827 3.194929 -4.757693 1.196964, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.013][jaka_driver_component.cpp][5002]: Sending joint move: -3.743132 1.770417 1.876965 3.191493 -4.755898 1.197359, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.020][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.743132 1.770417 1.876965 3.191493 -4.755898 1.197359, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.020][jaka_driver_component.cpp][5002]: Sending joint move: -3.742025 1.801719 1.853349 3.187191 -4.753650 1.197853, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.028][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.742025 1.801719 1.853349 3.187191 -4.753650 1.197853, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.028][jaka_driver_component.cpp][5002]: Sending joint move: -3.740914 1.833119 1.829659 3.182875 -4.751395 1.198348, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.037][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.740914 1.833119 1.829659 3.182875 -4.751395 1.198348, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.037][jaka_driver_component.cpp][5002]: Sending joint move: -3.739803 1.864519 1.805969 3.178560 -4.749141 1.198843, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.044][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.739803 1.864519 1.805969 3.178560 -4.749141 1.198843, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.044][jaka_driver_component.cpp][5002]: Sending joint move: -3.738692 1.895919 1.782279 3.174244 -4.746886 1.199339, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.053][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.738692 1.895919 1.782279 3.174244 -4.746886 1.199339, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.053][jaka_driver_component.cpp][5002]: Sending joint move: -3.737581 1.927319 1.758589 3.169928 -4.744631 1.199834, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.060][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.737581 1.927319 1.758589 3.169928 -4.744631 1.199834, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.061][jaka_driver_component.cpp][5002]: Sending joint move: -3.736470 1.958719 1.734899 3.165612 -4.742377 1.200329, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.072][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.736470 1.958719 1.734899 3.165612 -4.742377 1.200329, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.072][jaka_driver_component.cpp][5002]: Sending joint move: -3.735359 1.990119 1.711209 3.161297 -4.740122 1.200825, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.077][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.735359 1.990119 1.711209 3.161297 -4.740122 1.200825, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.077][jaka_driver_component.cpp][5002]: Sending joint move: -3.734248 2.021519 1.687518 3.156981 -4.737867 1.201320, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.084][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.734248 2.021519 1.687518 3.156981 -4.737867 1.201320, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.084][jaka_driver_component.cpp][5002]: Sending joint move: -3.733137 2.052919 1.663828 3.152665 -4.735613 1.201815, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.093][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.733137 2.052919 1.663828 3.152665 -4.735613 1.201815, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.093][jaka_driver_component.cpp][5002]: Sending joint move: -3.732026 2.084319 1.640138 3.148349 -4.733358 1.202311, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.100][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.732026 2.084319 1.640138 3.148349 -4.733358 1.202311, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.100][jaka_driver_component.cpp][5002]: Sending joint move: -3.731092 2.110709 1.620228 3.144722 -4.731463 1.202727, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.109][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.731092 2.110709 1.620228 3.144722 -4.731463 1.202727, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.109][jaka_driver_component.cpp][5002]: Sending joint move: -3.730512 2.127098 1.607863 3.142470 -4.730286 1.202985, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.116][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.730512 2.127098 1.607863 3.142470 -4.730286 1.202985, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.116][jaka_driver_component.cpp][5002]: Sending joint move: -3.730286 2.133488 1.603042 3.141591 -4.729827 1.203086, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.125][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.730286 2.133488 1.603042 3.141591 -4.729827 1.203086, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.125][jaka_driver_component.cpp][5002]: Sending joint move: -3.730283 2.133585 1.602969 3.141578 -4.729820 1.203088, 0.013898 1
+[component_container_mt-1] [INFO ] [2025-04-15 13:43:53.132][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.730283 2.133585 1.602969 3.141578 -4.729820 1.203088, 0.013898 1
+
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:51.959][jaka_driver_component.cpp][4982]: Number of points: 18
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:51.970][jaka_driver_component.cpp][5002]: Sending joint move: -3.579497 1.823919 1.390846 3.614696 -4.751638 1.279810, 0.000000 0
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:51.971][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.579497 1.823919 1.390846 3.614696 -4.751638 1.279810, 0.000000 0
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:51.971][jaka_driver_component.cpp][5002]: Sending joint move: -3.580962 1.823282 1.395846 3.610405 -4.752888 1.279044, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:51.975][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.580962 1.823282 1.395846 3.610405 -4.752888 1.279044, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:51.975][jaka_driver_component.cpp][5002]: Sending joint move: -3.585360 1.821370 1.410846 3.597532 -4.756640 1.276745, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:51.984][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.585360 1.821370 1.410846 3.597532 -4.756640 1.276745, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:51.984][jaka_driver_component.cpp][5002]: Sending joint move: -3.592689 1.818183 1.435846 3.576077 -4.762892 1.272915, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:51.992][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.592689 1.818183 1.435846 3.576077 -4.762892 1.272915, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:51.992][jaka_driver_component.cpp][5002]: Sending joint move: -3.601865 1.814193 1.467148 3.549213 -4.770721 1.268118, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.000][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.601865 1.814193 1.467148 3.549213 -4.770721 1.268118, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.000][jaka_driver_component.cpp][5002]: Sending joint move: -3.611071 1.810190 1.498548 3.522265 -4.778574 1.263307, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.008][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.611071 1.810190 1.498548 3.522265 -4.778574 1.263307, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.008][jaka_driver_component.cpp][5002]: Sending joint move: -3.620276 1.806187 1.529948 3.495318 -4.786427 1.258496, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.016][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.620276 1.806187 1.529948 3.495318 -4.786427 1.258496, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.016][jaka_driver_component.cpp][5002]: Sending joint move: -3.629481 1.802185 1.561348 3.468370 -4.794280 1.253684, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.025][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.629481 1.802185 1.561348 3.468370 -4.794280 1.253684, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.025][jaka_driver_component.cpp][5002]: Sending joint move: -3.638686 1.798182 1.592748 3.441422 -4.802133 1.248873, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.033][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.638686 1.798182 1.592748 3.441422 -4.802133 1.248873, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.033][jaka_driver_component.cpp][5002]: Sending joint move: -3.647891 1.794179 1.624148 3.414474 -4.809986 1.244062, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.042][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.647891 1.794179 1.624148 3.414474 -4.809986 1.244062, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.042][jaka_driver_component.cpp][5002]: Sending joint move: -3.657097 1.790177 1.655548 3.387526 -4.817840 1.239251, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.048][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.657097 1.790177 1.655548 3.387526 -4.817840 1.239251, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.049][jaka_driver_component.cpp][5002]: Sending joint move: -3.666302 1.786174 1.686948 3.360578 -4.825693 1.234439, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.057][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.666302 1.786174 1.686948 3.360578 -4.825693 1.234439, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.057][jaka_driver_component.cpp][5002]: Sending joint move: -3.675507 1.782171 1.718348 3.333631 -4.833546 1.229628, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.064][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.675507 1.782171 1.718348 3.333631 -4.833546 1.229628, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.064][jaka_driver_component.cpp][5002]: Sending joint move: -3.684712 1.778169 1.749748 3.306683 -4.841399 1.224817, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.072][jaka_driver_component.cpp][4301]: in coli 0
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.072][jaka_driver_component.cpp][4323]: in emergency 0
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.072][jaka_driver_component.cpp][4357]: inpos 1
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.073][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.684712 1.778169 1.749748 3.306683 -4.841399 1.224817, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.073][jaka_driver_component.cpp][5002]: Sending joint move: -3.693274 1.774446 1.778953 3.281619 -4.848703 1.220342, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.079][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.693274 1.774446 1.778953 3.281619 -4.848703 1.220342, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.079][jaka_driver_component.cpp][5002]: Sending joint move: -3.699071 1.771925 1.798727 3.264648 -4.853648 1.217312, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.088][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.699071 1.771925 1.798727 3.264648 -4.853648 1.217312, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.088][jaka_driver_component.cpp][5002]: Sending joint move: -3.701936 1.770679 1.808501 3.256260 -4.856093 1.215814, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.096][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.701936 1.770679 1.808501 3.256260 -4.856093 1.215814, 0.100000 12
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.096][jaka_driver_component.cpp][5002]: Sending joint move: -3.702270 1.770534 1.809640 3.255282 -4.856378 1.215640, 0.047740 5
+[component_container_mt-1] [INFO ] [2025-04-15 16:05:52.104][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.702270 1.770534 1.809640 3.255282 -4.856378 1.215640, 0.047740 5
+```
 ## MoveIt 任务构造器(MoveIt Task Constructor)
 ### 什么是 MoveIt 任务构造器?  
 MoveIt 任务构造器 [MTC](./moveit_task_constructor) 框架有助于将复杂的规划任务分解为多个相互依赖的子任务。

@@ -526,6 +526,357 @@ MoveIt 支持多种算法，用于对运动轨迹进行后处理，添加时间�
 [component_container_mt-1] [INFO ] [2025-04-15 16:05:52.096][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.701936 1.770679 1.808501 3.256260 -4.856093 1.215814, 0.100000 12
 [component_container_mt-1] [INFO ] [2025-04-15 16:05:52.096][jaka_driver_component.cpp][5002]: Sending joint move: -3.702270 1.770534 1.809640 3.255282 -4.856378 1.215640, 0.047740 5
 [component_container_mt-1] [INFO ] [2025-04-15 16:05:52.104][jaka_driver_component.cpp][5027]: Accepted joint angle: -3.702270 1.770534 1.809640 3.255282 -4.856378 1.215640, 0.047740 5
+```     
+
+以下代码是做时间最优算法进行参数化
+```C++
+bool TimeOptimalTrajectoryGeneration::doTimeParameterizationCalculations(
+    robot_trajectory::RobotTrajectory& trajectory,
+    const Eigen::VectorXd& max_velocity,
+    const Eigen::VectorXd& max_acceleration) const
+{
+  // 由于底层库在关节角度绕环处理上存在问题，先对轨迹进行“展开”处理
+  trajectory.unwind();
+
+  // 获取轨迹对应的关节组指针
+  const moveit::core::JointModelGroup* group = trajectory.getGroup();
+  if (!group)
+  {
+    // 如果 planner 未设置 group，则报错并返回失败
+    RCLCPP_ERROR(LOGGER, "It looks like the planner did not set the group the plan was computed for");
+    return false;
+  }
+
+  // 总的采样点数量
+  const unsigned num_points = trajectory.getWayPointCount();
+  // 每个关节在 RobotState 中的位置索引列表
+  const std::vector<int>& idx = group->getVariableIndexList();
+  // 关节总数
+  const unsigned num_joints = group->getVariableCount();
+
+  // 将轨迹点转换到 Eigen::VectorXd 并去掉重复点
+  // 详见：https://github.com/tobiaskunz/trajectories/issues/3
+  std::list<Eigen::VectorXd> points;
+  for (size_t p = 0; p < num_points; ++p)
+  {
+    // 获取第 p 个采样点的 RobotState
+    moveit::core::RobotStatePtr waypoint = trajectory.getWayPointPtr(p);
+    Eigen::VectorXd new_point(num_joints);
+    // 默认首个点保留
+    bool diverse_point = (p == 0);
+
+    // 遍历所有关节，将位置值写入 new_point
+    for (size_t j = 0; j < num_joints; ++j)
+    {
+      new_point[j] = waypoint->getVariablePosition(idx[j]);
+      // 如果与上一点任一关节差异超过阈值，则认为是“多样化”点
+      if (p > 0 && std::fabs(new_point[j] - points.back()[j]) > min_angle_change_)
+      {
+        diverse_point = true;
+      }
+    }
+
+    if (diverse_point)
+      // 若为多样化点，则加入列表
+      points.push_back(new_point);
+    else if (p == num_points - 1)
+      // 若到达最后一个点且它被视为重复，则用它替换最后一个保留点，确保终点被保留
+      points.back() = new_point;
+  }
+
+  // 如果去重后只有一个点，则直接生成静止的单点轨迹
+  if (points.size() == 1)
+  {
+    // 复制原始首点，并将速度、加速度清零
+    moveit::core::RobotState waypoint = moveit::core::RobotState(trajectory.getWayPoint(0));
+    waypoint.zeroVelocities();
+    waypoint.zeroAccelerations();
+    // 清空原轨迹，添加单一终点
+    trajectory.clear();
+    trajectory.addSuffixWayPoint(waypoint, 0.0);
+    return true;
+  }
+
+  // 使用时间最优算法进行参数化
+  Trajectory parameterized(Path(points, path_tolerance_),
+                           max_velocity,
+                           max_acceleration,
+                           DEFAULT_TIMESTEP);
+  if (!parameterized.isValid())
+  {
+    RCLCPP_ERROR(LOGGER, "Unable to parameterize trajectory.");
+    return false;
+  }
+
+  // 计算重采样点个数：总时长 / 采样时间间隔
+  size_t sample_count = std::ceil(parameterized.getDuration() / resample_dt_);
+
+  // 重采样并填充回 trajectory
+  // 先备份起始状态
+  moveit::core::RobotState waypoint = moveit::core::RobotState(trajectory.getWayPoint(0));
+  trajectory.clear();
+
+  double last_t = 0;
+  for (size_t sample = 0; sample <= sample_count; ++sample)
+  {
+    // 计算当前采样时间 t（确保最后采样点恰好是轨迹末尾）
+    double t = std::min(parameterized.getDuration(), sample * resample_dt_);
+    // 获取位置、速度、加速度向量
+    Eigen::VectorXd position     = parameterized.getPosition(t);
+    Eigen::VectorXd velocity     = parameterized.getVelocity(t);
+    Eigen::VectorXd acceleration = parameterized.getAcceleration(t);
+
+    // 将采样值写入 waypoint 对象
+    for (size_t j = 0; j < num_joints; ++j)
+    {
+      waypoint.setVariablePosition(idx[j], position[j]);
+      waypoint.setVariableVelocity(idx[j], velocity[j]);
+      waypoint.setVariableAcceleration(idx[j], acceleration[j]);
+    }
+
+    // 以增量时间（当前 t 与上一次 t 之差）添加新的后缀轨迹点
+    trajectory.addSuffixWayPoint(waypoint, t - last_t);
+    last_t = t;
+  }
+
+  // 参数化并重采样成功
+  return true;
+}
+```     
+带有路径点坐标，时间，加速度，速度参数轨迹生成代码
+```C++
+Trajectory::Trajectory(const Path& path,
+                       const Eigen::VectorXd& max_velocity,
+                       const Eigen::VectorXd& max_acceleration,
+                       double time_step)
+  : path_(path)                                // 保存路径对象引用
+  , max_velocity_(max_velocity)                // 保存各关节最大速度向量
+  , max_acceleration_(max_acceleration)        // 保存各关节最大加速度向量
+  , joint_num_(max_velocity.size())            // 关节数量由速度向量长度决定
+  , valid_(true)                               // 轨迹是否有效的标志，默认设为 true
+  , time_step_(time_step)                      // 时间步长，用于数值积分
+  , cached_time_(std::numeric_limits<double>::max())  // 缓存总时长，初始为最大值
+{
+  // 若时间步长为 0，则无法积分，直接标记为无效并报错
+  if (time_step_ == 0)
+  {
+    valid_ = false;
+    RCLCPP_ERROR(LOGGER, "The trajectory is invalid because the time step is 0.");
+    return;
+  }
+
+  // 初始化轨迹点列表，先加入路径起点：(path位置=0, 路径速度=0)
+  trajectory_.push_back(TrajectoryStep(0.0, 0.0));
+
+  // 计算在起点处沿路径正向的最小/最大加速度
+  double after_acceleration = getMinMaxPathAcceleration(0.0, 0.0, true);
+
+  // 正向积分：不断向前推进，从路径起点以最大可行加速度向前积分，直到遇到加速/减速切换点或触发速度/加速度限制
+  while (valid_ && !integrateForward(trajectory_, after_acceleration) && valid_)
+  {
+    double before_acceleration;
+    TrajectoryStep switching_point;
+
+    // 若找到了速度约束切换点，则退出正向循环
+    if (getNextSwitchingPoint(trajectory_.back().path_pos_,
+                              switching_point,
+                              before_acceleration,
+                              after_acceleration))
+    {
+      break;
+    }
+    // 否则，从切换点往回进行反向积分，保证满足加速度约束
+    integrateBackward(trajectory_,
+                      switching_point.path_pos_,
+                      switching_point.path_vel_,
+                      before_acceleration);
+  }
+
+  // 若前向积分成功且轨迹仍有效，则从终点开始进行一次反向积分，收尾补齐
+  if (valid_)
+  {
+    // 在路径末端位置，目标速度为 0，计算可行加速度
+    double before_acceleration = getMinMaxPathAcceleration(path_.getLength(),
+                                                           0.0,
+                                                           false);
+    integrateBackward(trajectory_,
+                      path_.getLength(),
+                      0.0,
+                      before_acceleration);
+  }
+
+  // 若轨迹仍然有效，则根据积分得到的路径位置与速度信息，计算每个采样点的绝对时间
+  if (valid_)
+  {
+    auto previous = trajectory_.begin();
+    auto it = previous;
+    it->time_ = 0.0;  // 起点时间为 0
+    ++it;
+
+    // 遍历后续每个轨迹步
+    while (it != trajectory_.end())
+    {
+      // 用梯形速度法则：Δt = Δs / ((v_i + v_{i-1})/2)
+      it->time_ =
+          previous->time_
+          + (it->path_pos_ - previous->path_pos_)
+            / ((it->path_vel_ + previous->path_vel_) / 2.0);
+      previous = it;
+      ++it;
+    }
+  }
+}
+```
+前向积分
+```C++
+// 返回 true 表示已到达路径末端
+bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double acceleration)
+{
+  // 取出当前最新的路径位置和速度
+  double path_pos = trajectory.back().path_pos_;
+  double path_vel = trajectory.back().path_vel_;
+
+  // 获取所有“切换点”（加速/减速约束变化处），pair.first 为路径位置，pair.second 为是否有效
+  std::list<std::pair<double, bool>> switching_points = path_.getSwitchingPoints();
+  auto next_discontinuity = switching_points.begin();
+
+  while (true)
+  {
+    // 跳过位置已过或无效的切换点
+    while (next_discontinuity != switching_points.end() &&
+           (next_discontinuity->first <= path_pos || !next_discontinuity->second))
+    {
+      ++next_discontinuity;
+    }
+
+    // 保存旧的状态以便插值和回退
+    double old_path_pos = path_pos;
+    double old_path_vel = path_vel;
+
+    // 基于当前加速度进行欧拉积分（速度与位置）
+    path_vel += time_step_ * acceleration;
+    path_pos += time_step_ * 0.5 * (old_path_vel + path_vel);
+
+    // 如果越过了下一个切换点
+    if (next_discontinuity != switching_points.end() && path_pos > next_discontinuity->first)
+    {
+      // 若仅因浮点误差略过，则继续循环，不添加点
+      if (path_pos - next_discontinuity->first < EPS)
+      {
+        continue;
+      }
+      // 否则，在切换点处重新插值出速度，并将 path_pos 固定到切换点
+      path_vel = old_path_vel +
+                 (next_discontinuity->first - old_path_pos)
+                 * (path_vel - old_path_vel) / (path_pos - old_path_pos);
+      path_pos = next_discontinuity->first;
+    }
+
+    // 到达或超过路径终点
+    if (path_pos > path_.getLength())
+    {
+      trajectory.push_back(TrajectoryStep(path_pos, path_vel));
+      return true;
+    }
+    // 如果速度变为负值，则积分出现错误，标记无效并返回
+    else if (path_vel < 0.0)
+    {
+      valid_ = false;
+      RCLCPP_ERROR(LOGGER, "Error while integrating forward: Negative path velocity");
+      return true;
+    }
+
+    // 如果超过速度-位置约束曲线，且当前相位斜率允许，则硬限制速度
+    if (path_vel > getVelocityMaxPathVelocity(path_pos) &&
+        getMinMaxPhaseSlope(old_path_pos, getVelocityMaxPathVelocity(old_path_pos), false) <=
+            getVelocityMaxPathVelocityDeriv(old_path_pos))
+    {
+      path_vel = getVelocityMaxPathVelocity(path_pos);
+    }
+
+    // 将新计算的步加入轨迹
+    trajectory.push_back(TrajectoryStep(path_pos, path_vel));
+    // 更新当前加速度，准备下一次积分
+    acceleration = getMinMaxPathAcceleration(path_pos, path_vel, true);
+
+    // 检查死循环条件：速度和加速度同时为零则永无进展
+    if (path_vel == 0 && acceleration == 0)
+    {
+      valid_ = false;
+      RCLCPP_ERROR(LOGGER,
+        "Error while integrating forward: zero acceleration and velocity. "
+        "Are any relevant acceleration components limited to zero?");
+      return true;
+    }
+
+    // 若速度超出任一约束，需要精细定位临界点
+    if (path_vel > getAccelerationMaxPathVelocity(path_pos) ||
+        path_vel > getVelocityMaxPathVelocity(path_pos))
+    {
+      // 先弹出刚加入的越界点，用二分法在前后两点间找到精确交点
+      TrajectoryStep overshoot = trajectory.back();
+      trajectory.pop_back();
+      double before = trajectory.back().path_pos_;
+      double before_path_vel = trajectory.back().path_vel_;
+      double after = overshoot.path_pos_;
+      double after_path_vel = overshoot.path_vel_;
+
+      // 二分缩小区间至 EPS 精度
+      while (after - before > EPS)
+      {
+        double midpoint = 0.5 * (before + after);
+        double midpoint_path_vel = 0.5 * (before_path_vel + after_path_vel);
+
+        // 若中点速度仍需限幅，则修正至最大允许速度
+        if (midpoint_path_vel > getVelocityMaxPathVelocity(midpoint) &&
+            getMinMaxPhaseSlope(before, getVelocityMaxPathVelocity(before), false) <=
+                getVelocityMaxPathVelocityDeriv(before))
+        {
+          midpoint_path_vel = getVelocityMaxPathVelocity(midpoint);
+        }
+
+        // 判定新中点是否仍越界，收缩上/下区间
+        if (midpoint_path_vel > getAccelerationMaxPathVelocity(midpoint) ||
+            midpoint_path_vel > getVelocityMaxPathVelocity(midpoint))
+        {
+          after = midpoint;
+          after_path_vel = midpoint_path_vel;
+        }
+        else
+        {
+          before = midpoint;
+          before_path_vel = midpoint_path_vel;
+        }
+      }
+      // 将收敛后的边界点重新加入轨迹
+      trajectory.push_back(TrajectoryStep(before, before_path_vel));
+
+      // 根据约束类型和切换点位置，决定是否提前退出以切换算法阶段
+      if (getAccelerationMaxPathVelocity(after) < getVelocityMaxPathVelocity(after))
+      {
+        if (after > next_discontinuity->first)
+        {
+          return false;  // 切换到反向积分
+        }
+        else if (getMinMaxPhaseSlope(trajectory.back().path_pos_,
+                                     trajectory.back().path_vel_, true) >
+                 getAccelerationMaxPathVelocityDeriv(trajectory.back().path_pos_))
+        {
+          return false;
+        }
+      }
+      else
+      {
+        if (getMinMaxPhaseSlope(trajectory.back().path_pos_,
+                                trajectory_.back().path_vel_, false) >
+            getVelocityMaxPathVelocityDeriv(trajectory_.back().path_pos_))
+        {
+          return false;
+        }
+      }
+    }
+  }
+}
 ```
 ## MoveIt 任务构造器(MoveIt Task Constructor)
 ### 什么是 MoveIt 任务构造器?  

@@ -53,20 +53,21 @@
   - [MoveIt 任务构造器(MoveIt Task Constructor)](#moveit-任务构造器moveit-task-constructor)
     - [什么是 MoveIt 任务构造器?](#什么是-moveit-任务构造器)
     - [MTC 阶段](#mtc-阶段)
-    - [生成器(Generator Stage)](#生成器generator-stage)
-    - [传播阶段（Propagating Stage）](#传播阶段propagating-stage)
-    - [连接阶段(connecting-stages)](#连接阶段connecting-stages)
-    - [包装器(wrappers)](#包装器wrappers)
+      - [生成器(Generator Stage)](#生成器generator-stage)
+      - [传播阶段（Propagating Stage）](#传播阶段propagating-stage)
+      - [连接阶段(connecting-stages)](#连接阶段connecting-stages)
+      - [包装器(wrappers)](#包装器wrappers)
     - [MTC 容器（MTC Containers）](#mtc-容器mtc-containers)
       - [串行容器](#串行容器)
       - [平行容器(parallel-containers)](#平行容器parallel-containers)
-    - [初始化 MTC 任务 （Initializing a MTC Task）](#初始化-mtc-任务-initializing-a-mtc-task)
-    - [向 MTC 任务添加容器和阶段（Adding containers and stages to a MTC Task）](#向-mtc-任务添加容器和阶段adding-containers-and-stages-to-a-mtc-task)
-    - [设置规划求解器 （Setting planning solvers）](#设置规划求解器-setting-planning-solvers)
-    - [设置属性 （Setting Properties）](#设置属性-setting-properties)
-    - [阶段成本计算器（Cost calculator for Stages）](#阶段成本计算器cost-calculator-for-stages)
-    - [规划和执行 MTC 任务](#规划和执行-mtc-任务)
-  - [MoveIt 插件](#moveit-插件)
+    - [MTC设计教程](#mtc设计教程)
+      - [初始化 MTC 任务 （Initializing a MTC Task）](#初始化-mtc-任务-initializing-a-mtc-task)
+      - [向 MTC 任务添加容器和阶段（Adding containers and stages to a MTC Task）](#向-mtc-任务添加容器和阶段adding-containers-and-stages-to-a-mtc-task)
+      - [设置规划求解器 （Setting planning solvers）](#设置规划求解器-setting-planning-solvers)
+      - [设置属性 （Setting Properties）](#设置属性-setting-properties)
+      - [阶段成本计算器（Cost calculator for Stages）](#阶段成本计算器cost-calculator-for-stages)
+      - [规划和执行 MTC 任务](#规划和执行-mtc-任务)
+      - [MTC运行实例](#mtc运行实例)
 
 ## 编译与运行
 ### 编译
@@ -302,14 +303,14 @@ MoveIt 的默认逆运动学插件是使用KDL基于雅可比矩阵的数值求�
 ## 运动规划（Motion Planning）
 运动规划器的接口是通过 ROS 操作或服务（由节点提供move_group）实现的，move_group 的默认运动规划器使用 OMPL 和 MoveIt 接口（由 MoveIt 设置助手配置）配置。默认情况下可用的其他规划器包括 Pilz 工业运动规划器和 CHOMP
 ### 运动规划请求
-要求运动规划器将手臂移动到其他位置（在关节空间中）或将末端执行器移动到新姿势。运动规划器要检查的约束，MoveIt 提供的内置约束是：[kinematic_constraint.cpp](./moveit2/moveit_core/kinematic_constraints/src/kinematic_constraint.cpp)
+要求运动规划器将手臂移动到其他位置（在关节空间中）或将末端执行器移动到新姿势。**运动规划器要检查的约束**，MoveIt 提供的内置约束是：[kinematic_constraint.cpp](./moveit2/moveit_core/kinematic_constraints/src/kinematic_constraint.cpp)
 1. 位置约束：将链接的位置限制在空间某个区域内。 
 2. 方向约束：限制链接的方向在指定的滚动、俯仰或偏航限制范围内。
 3. 可见性约束：限制链接上的点位于特定传感器的可见性锥体内。
 4. 关节约束：限制关节位于两个值之间。
 5. 用户指定的约束：也可以使用用户定义的回调指定自己的约束。   
 ### 运动规划应答   
-move_group节点将根据您的运动计划请求生成所需轨迹。此轨迹将使手臂（或任何关节组）移动到所需位置。请注意，move_group产生的结果是轨迹，而不仅仅是路径。move_group 将使用所需的最大速度和加速度（如果指定）来生成遵循关节级速度和加速度约束的轨迹。
+move_group节点将根据您的运动计划请求生成所需轨迹。此轨迹将使手臂（或任何关节组）移动到所需位置。请注意，**move_group产生的结果是轨迹，而不仅仅是路径**。move_group 将使用所需的最大速度和加速度（如果指定）来生成遵循关节级速度和加速度约束的轨迹。
 ### 运动规划请求适配器
 规划请求适配器[planning_request_adapter.cpp](./moveit2/moveit_core/planning_request_adapter/src/planning_request_adapter.cpp)文件中adaptAndPlan函数里面**容器变量adapters_**加载各种预设适配器，这些适配器分为**预处理运动规划请求和后处理运动规划响应**。预处理在几种情况下很有用，例如当机器人的起始状态略微超出机器人指定的关节限制时。其他几个操作需要后处理，例如将为机器人生成的路径转换为时间参数化的轨迹。MoveIt 提供了一组默认的运动规划适配器，每个适配器都执行非常具体的功能。
 ![alt text](images/image5.png)   
@@ -403,7 +404,7 @@ Global Planner 是该架构中最简单的组件。它提供了一个处理 Glob
 ### 配置（Configuration）
 move_group是一个 ROS 节点。它使用 ROS param server 获取三种信息：
 1. URDF：move_group寻找robot_description参数来获取机器人的 [URDF](./jaka_description/urdf/jaka_zu5.urdf)。
-2. SRDF：move_group查找robot_description_semantic参数以获取机器人的 [SRDF](./jaka_zu5_moveit_config/config/jaka_zu5.srdf)。SRDF 通常由用户使用 MoveIt 设置助手创建（第一次）。
+2. SRDF：move_group查找robot_description_semantic参数以获取机器人的 [SRDF](./jaka_zu5_moveit_config/config/jaka_zu5.srdf)。SRDF 通常由用户使用 MoveIt 设置助手创建（第一次），主要定义控制组（jaka_arm,jaka_with_gun,jaka_wo_gun）、感兴趣关节位置以及自碰撞矩阵等。
 3. MoveIt 配置：move_group将查找 MoveIt 特有的其他配置，包括关节限制、运动学、运动规划、感知和其他信息。这些组件的配置文件由 MoveIt 设置助手自动生成，并存储在[config](./jaka_zu5_moveit_config/config/)机器人相应 MoveIt 配置包的目录中。  
 ```C++    
   // Create the MoveIt MoveGroup Interface
@@ -413,15 +414,149 @@ move_group是一个 ROS 节点。它使用 ROS param server 获取三种信息�
   auto move_group_interface = MoveGroupInterface(node, "jaka_arm");
 ```
 ### 机器人接口（Robot Interface）
-move_group通过 ROS 话题（topic）和动作（Action）与机器人对话。它与机器人通信来获取当前状态信息（关节位置等）、从机器人传感器获取点云和其他传感器数据以及与机器人上的控制器对话。 
+move_group通过 ROS 话题（topic）和动作（Action）与机器人对话（**见下面ros graph图**）。它与机器人通信来获取当前状态信息（关节位置等）、从机器人传感器获取点云和其他传感器数据以及与机器人上的控制器对话。 
 ### 关节状态信息（Joint State Information）   
-move_group监听主题/joint_states以确定当前状态信息 - 即确定机器人的每个关节的位置。 move_group能够监听此主题上的多个发布者，即使他们只发布有关机器人状态的部分信息（例如，机器人的手臂和移动底座可以使用单独的发布者）。请注意，move_group不会设置自己的关节状态发布者 - 这是必须在每个机器人上实现的功能。  
+move_group监听**话题/joint_states**以确定当前状态信息 - 即确定机器人的每个关节的位置。 move_group能够监听此主题上的多个发布者，即使他们只发布有关机器人状态的部分信息（例如，机器人的手臂和移动底座可以使用单独的发布者）。请注意，move_group不会设置自己的关节状态发布者 - 这是必须在每个机器人上实现的功能。  
 ### 变换信息(Transform Information)
-move_group使用 ROS TF 库监控变换信息。这允许节点获取有关机器人姿势的全局信息（以及其他信息）。例如，ROS 导航堆栈将向 TF 发布地图框架和机器人基座框架之间的变换。 move_group可以使用 TF 找出此变换以供内部使用。请注意，move_group仅监听 TF。要从您的机器人发布 TF 信息，您需要robot_state_publisher在机器人上运行一个节点。
+move_group使用 ROS TF 库监控变换信息。这允许节点获取有关机器人姿势的全局信息（以及其他信息）。例如，ROS 导航堆栈将向 TF 发布地图框架和机器人基座框架之间的变换。 move_group可以使用 TF 找出此变换以供内部使用。请注意，move_group仅监听 TF。要从您的机器人发布 TF 信息，您需要robot_state_publisher在机器人上运行一个节点，**此节点会监听ros话题\joint_states**。
 ### 控制器接口 (Controller Interface) 
-move_group使用 FollowJointTrajectoryAction 接口与机器人上的控制器对话。这是一个 ROS 操作接口。机器人上的服务器需要为该操作提供服务 - 该服务器本身不提供move_group。 move_group将仅实例化一个客户端以与机器人上的该控制器操作服务器对话。
+move_group使用 FollowJointTrajectoryAction 接口(**jaka_arm_controller/follow_joint_trajectory**)与机器人上的控制器对话，配置文件为[moveit_controllers.yaml](./jaka_zu5_moveit_config/config/moveit_controllers.yaml)，这是一个 ROS 操作接口。机器人上的服务器需要为该操作提供服务 - 该服务器本身不提供move_group。 move_group将仅实例化一个客户端以与机器人上的该控制器操作服务器对话。
 总控制类[MoveItControllerManager](./moveit2/moveit_core/controller_manager/include/moveit/controller_manager/controller_manager.h)定义很多虚函数，---》（继承关系）[MoveItSimpleControllerManager](./moveit2/moveit_plugins/moveit_simple_controller_manager/src/moveit_simple_controller_manager.cpp) 进行实例化，在初始化过程initialize()中对关节轨迹控制句柄[FollowJointTrajectoryControllerHandle](./moveit2/moveit_plugins/moveit_simple_controller_manager/include/moveit_simple_controller_manager/follow_joint_trajectory_controller_handle.h)和夹抓控制器句柄[GripperControllerHandle](./moveit2/moveit_plugins/moveit_simple_controller_manager/include/moveit_simple_controller_manager/gripper_controller_handle.h)进行构造，他们都定义sendTrajectory(const moveit_msgs::msg::RobotTrajectory& trajectory)函数，最终由客户端发送controller_action_client_->async_send_goal()，总结就是控制器通过关节轨迹控制句柄和夹抓控制句柄进行发送轨迹，自身还有控制器句柄[MoveItControllerHandle](./moveit2/moveit_core/controller_manager/include/moveit/controller_manager/controller_manager.h)---》（继承关系）类ActionBasedControllerHandleBase==》[ActionBasedControllerHandle](./moveit2/moveit_plugins/moveit_simple_controller_manager/include/moveit_simple_controller_manager/action_based_controller_handle.h)定义客户端去执行取消执行轨迹规划，服务端反馈结果，以及服务端一些状态等信息    
 执行此函数是在[TrajectoryExecutionManager::continuousExecutionThread()](./moveit2/moveit_ros/planning/trajectory_execution_manager/src/trajectory_execution_manager.cpp)函数。
+```C++   
+// 建立和机器人型号一致的action，如/jaka_zu5_controller/follow_joint_trajectory
+this->moveit_server_ =
+    rclcpp_action::create_server<control_msgs::action::FollowJointTrajectory>(
+        this,
+        "/" + robot_model + "_controller/follow_joint_trajectory",
+        std::bind(&jaka_robot_driver::handle_goal, this, std::placeholders::_1,
+                  std::placeholders::_2),
+        std::bind(&jaka_robot_driver::handle_cancel, this, std::placeholders::_1),
+        std::bind(&jaka_robot_driver::handle_accepted, this, std::placeholders::_1));
+
+// FollowJointTrajectory Action handle_accepted
+void jaka_robot_driver::handle_accepted(const
+	std::shared_ptr<rclcpp_action::ServerGoalHandle<control_msgs::action::FollowJointTrajectory>>
+	goal_handle)
+{
+	float last_duration = 0.0;
+	auto feedback =
+	std::make_shared<control_msgs::action::FollowJointTrajectory::Feedback>();
+	auto result =
+	std::make_shared<control_msgs::action::FollowJointTrajectory::Result>();
+	JointValue joint_pose;
+	int point_num = goal_handle->get_goal()->trajectory.points.size();
+	LOTUS_INFO("Number of points: %d", point_num);
+	this->jaka_robot_.servo_move_enable(true);
+
+	for (int i = 0; i < point_num; i++)
+	{
+		joint_pose.jVal[0] = goal_handle->get_goal()->trajectory.points[i].positions[0];
+		joint_pose.jVal[1] = goal_handle->get_goal()->trajectory.points[i].positions[1];
+		joint_pose.jVal[2] = goal_handle->get_goal()->trajectory.points[i].positions[2];
+		joint_pose.jVal[3] = goal_handle->get_goal()->trajectory.points[i].positions[3];
+		joint_pose.jVal[4] = goal_handle->get_goal()->trajectory.points[i].positions[4];
+		joint_pose.jVal[5] = goal_handle->get_goal()->trajectory.points[i].positions[5];
+		// 计算 step_num
+		float duration =
+		goal_handle->get_goal()->trajectory.points[i].time_from_start.sec * 1.0 +
+		goal_handle->get_goal()->trajectory.points[i].time_from_start.nanosec / 1e9;
+		float delta_t = duration - last_duration;
+		last_duration = duration;
+		// driver 那边一个周期是8ms
+		unsigned int step_num = delta_t / 0.008;
+
+		LOTUS_INFO("Sending joint move: %f %f %f %f %f %f, "
+		"%f %d",
+		joint_pose.jVal[0],
+		joint_pose.jVal[1],
+		joint_pose.jVal[2],
+		joint_pose.jVal[3],
+		joint_pose.jVal[4],
+		joint_pose.jVal[5],
+		delta_t, step_num);
+		int servo_j_ret = this->jaka_robot_.servo_j(&joint_pose, MoveMode::ABS,
+		1);
+		sleep(0.020);
+
+		// Wait for the response. At this point, robot should be done blocking and ready to accept new commands
+		if (ERR_SUCC != servo_j_ret)
+		{
+			// 不成功返回0
+			LOTUS_ERROR("Call servo_step_j fail %s\n",
+			this->mapErr_.at(servo_j_ret).c_str());
+			result->error_code = servo_j_ret;
+			result->error_string = this->mapErr_.at(servo_j_ret);
+			goal_handle->abort(result);
+			return;
+		}
+
+		LOTUS_INFO("Accepted joint angle: %f %f %f %f %f %f, "
+		"%f %d",
+		goal_handle.get()->get_goal()->trajectory.points[i].positions[0],
+		goal_handle.get()->get_goal()->trajectory.points[i].positions[1],
+		goal_handle.get()->get_goal()->trajectory.points[i].positions[2],
+		goal_handle.get()->get_goal()->trajectory.points[i].positions[3],
+		goal_handle.get()->get_goal()->trajectory.points[i].positions[4],
+		goal_handle.get()->get_goal()->trajectory.points[i].positions[5],
+		delta_t, step_num);
+	}
+
+	joint_pose.jVal[0] = goal_handle->get_goal()->trajectory.points[point_num-1].positions[0];
+	joint_pose.jVal[1] = goal_handle->get_goal()->trajectory.points[point_num-1].positions[1];
+	joint_pose.jVal[2] = goal_handle->get_goal()->trajectory.points[point_num-1].positions[2];
+	joint_pose.jVal[3] = goal_handle->get_goal()->trajectory.points[point_num-1].positions[3];
+	joint_pose.jVal[4] = goal_handle->get_goal()->trajectory.points[point_num-1].positions[4];
+	joint_pose.jVal[5] = goal_handle->get_goal()->trajectory.points[point_num-1].positions[5];
+	std::cout <<"final joint status"<< joint_pose.jVal[0] << "," << joint_pose.jVal[1] << "," << joint_pose.jVal[2] <<"," << joint_pose.jVal[3] << "," << joint_pose.jVal[4] << "," << joint_pose.jVal[5]<<"\n";
+	bool in_target = false;
+	JointValue jot_pos;
+	while (!in_target)
+	{
+		sleep(0.1);
+		this->jaka_robot_.get_joint_position(&jot_pos);
+		std::cout <<"cur joint status1: "<< jot_pos.jVal[0] << "," << jot_pos.jVal[1] << "," << jot_pos.jVal[2]<<","<< jot_pos.jVal[3] << "," << jot_pos.jVal[4] << "," << jot_pos.jVal[5] << "\n";
+
+		if ( 
+		fabs(jot_pos.jVal[0] - joint_pose.jVal[0]) < 0.001 &&
+		fabs(jot_pos.jVal[1] - joint_pose.jVal[1]) < 0.001 &&
+		fabs(jot_pos.jVal[2] - joint_pose.jVal[2]) < 0.001 &&
+		fabs(jot_pos.jVal[3] - joint_pose.jVal[3]) < 0.001 &&
+		fabs(jot_pos.jVal[4] - joint_pose.jVal[4]) < 0.001 &&
+		fabs(jot_pos.jVal[5] - joint_pose.jVal[5]) < 0.001)
+		{
+			in_target = true;
+			//this->servo_move_enable(false);
+			result->error_code = 0;
+			goal_handle->succeed(result);
+			LOTUS_INFO("运动成功, 伺服模式使能关闭\n");
+		}
+	}
+	return;
+}
+
+// 目标回调, 过滤
+rclcpp_action::GoalResponse jaka_robot_driver::handle_goal(
+    const rclcpp_action::GoalUUID &uuid,
+    std::shared_ptr<const control_msgs::action::FollowJointTrajectory::Goal> goal)
+{
+	LOTUS_INFO("Received goal request with point num %ld\n",
+	           goal->trajectory.points.size());
+	(void)uuid;
+	return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+}
+
+// 取消
+rclcpp_action::CancelResponse jaka_robot_driver::handle_cancel(
+    const std::shared_ptr<rclcpp_action::ServerGoalHandle<control_msgs::action::FollowJointTrajectory>>
+    goal_handle)
+{
+	LOTUS_INFO("Received request to cancel goal\n");
+	(void)goal_handle;
+	servo_move_enable(false);
+	return rclcpp_action::CancelResponse::ACCEPT;
+}
+```
 在***foxy***版本中先运行驱动
 ros2 launch moveit_arm_control arm_control.launch.py 
 再运行move_group节点
@@ -1192,61 +1327,66 @@ bool TimeOptimalTrajectoryGeneration::doTimeParameterizationCalculations(
 
 ## MoveIt 任务构造器(MoveIt Task Constructor)
 ### 什么是 MoveIt 任务构造器?  
-MoveIt 任务构造器 [MTC](./moveit_task_constructor) 框架有助于将复杂的规划任务分解为多个相互依赖的子任务。
-MTC 使用 MoveIt 来解决子任务。子任务的信息通过 InterfaceState 对象传递。  
+MoveIt 任务构造器 [MTC](./moveit_task_constructor) 框架有助于将复杂的规划任务分解为多个相互依赖的子任务。MTC 使用 MoveIt 来解决子任务。子任务的信息通过 InterfaceState 对象传递。  
 ![alt text](images/image-4.png)  
 ### MTC 阶段
-MTC阶段是指任务执行管道中的组件或步骤。
-阶段可以按任意顺序排列，并且其层次结构仅受各个阶段类型的限制。
-阶段排列的顺序受到结果传递方向的限制。  
-与结果流相关的可能阶段有三个：
+MTC阶段是指任务执行管道中的组件或步骤。阶段可以按任意顺序排列，并且其层次结构仅受各个阶段类型的限制。阶段排列的顺序受到结果传递方向的限制，与结果流相关的可能阶段有三个：
 1. 生成器
 2. 传播者
 3. 连接器  
-   
-### 生成器(Generator Stage)    
+#### 生成器(Generator Stage)    
 ![alt text](images/image-5.png)
 生成器阶段不接收来自相邻阶段的输入。它们计算结果并将其传递到两个方向 - 向前和向后。
-MTC 任务的执行从生成器阶段开始。   
-最重要的生成器阶段是CurrentState，它将当前机器人状态作为规划管道的起点。  
-监控生成器是监控另一个阶段（不相邻）的解决方案以使用该解决方案进行规划的阶段。  
-监控生成器的示例 - GeneratePose。它通常监控CurrentState或ModifyPlanningScene阶段。通过监控的解决方案CurrentState，该GeneratePose阶段可以找到它应该围绕其生成姿势的对象或框架。更多信息请参考[generating-stages](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/generating_stages.html#generating-stages)   
-### 传播阶段（Propagating Stage）   
+MTC 任务的执行从生成器阶段开始: 
+- 生成器阶段主要是**CurrentState**，它将当前机器人状态作为规划管道的起点。
+- 监控生成器是监控另一个阶段的解决方案以使用该解决方案进行规划的阶段。监控生成器的示例 - **GenerateGraspPose**。它通常监控CurrentState或ModifyPlanningScene阶段。通过监控的解决方案CurrentState，该GeneratePose阶段可以找到它应该围绕其生成姿势的对象或框架。更多信息请参考[generating-stages](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/generating_stages.html#generating-stages)   
+
+#### 传播阶段（Propagating Stage）   
 ![alt text](images/image-6.png)   
-传播器从一个邻居状态接收解决方案，解决问题，然后将结果传播到另一侧的邻居。
-根据具体实施，此阶段可以向前、向后或双向传递解决方案。
-传播阶段的示例 移动到某个姿势。此阶段通常用于接近要拾取的物体。更多信息参考[propagating-stages](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/propagating_stages.html#propagating-stages)    
-### 连接阶段(connecting-stages)  
+传播器从一个邻居状态接收解决方案，解决问题，然后将结果传播到另一侧的邻居。根据具体实施，此阶段可以向前、向后或双向传递解决方案。传播阶段的示例 移动到某个姿势。此阶段通常用于接近要拾取的物体。更多信息参考[propagating-stages](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/propagating_stages.html#propagating-stages)    
+#### 连接阶段(connecting-stages)  
 ![alt text](images/image-7.png)   
-连接器不会传播任何结果，但会尝试连接相邻阶段提供的开始和目标输入。
-连接阶段通常解决起始状态和目标状态之间的可行轨迹。更多信息参考[connecting-stages](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/connecting_stages.html#connecting-stages) 
+连接器不会传播任何结果，但会尝试连接（**Connect**）相邻阶段提供的开始和目标输入。**连接阶段通常解决起始状态和目标状态之间的可行轨迹**。更多信息参考[connecting-stages](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/connecting_stages.html#connecting-stages) 
 ![alt text](./images/image16.png) 
-### 包装器(wrappers)
-包装器封装了另一个阶段来修改或过滤结果。
-包装器示例 -Compute IK for Generate Grasp Pose阶段。Generate Grasp Pose阶段将产生笛卡尔姿势解决方案。通过封装一个Compute IK阶段围绕着Generate Pose阶段，笛卡尔姿势解决方案可用于Generate Pose阶段产生 IK 解决方案（即产生机器人的关节状态配置以达到姿势）。更多信息参考[wrappers](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/wrappers.html#wrappers)
+#### 包装器(wrappers)
+**包装器封装了另一个阶段来修改或过滤结果**。包装器示例 -Compute IK for Generate Grasp Pose阶段。Generate Grasp Pose阶段将产生笛卡尔姿势解决方案。通过封装一个Compute IK阶段围绕着Generate Pose阶段，笛卡尔姿势解决方案可用于Generate Pose阶段产生 IK 解决方案（**总结：笛卡尔坐标转变为关节空间坐标，进行关节规划**）。更多信息参考[wrappers](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/wrappers.html#wrappers)
 ### MTC 容器（MTC Containers）  
-MTC 框架使用容器实现阶段的分层组织，从而实现顺序和并行组合。
-MTC 容器有助于组织各阶段的执行顺序。
-以编程方式，可以将一个容器添加到另一个容器内。  
-目前可用的容器：
+MTC 框架使用容器实现阶段的分层组织，从而实现顺序和并行组合。MTC 容器有助于组织各阶段的执行顺序。以编程方式，可以将一个容器添加到另一个容器内。目前可用的容器：
 1. 串行
 2. 平行  
 
 #### 串行容器
-串行容器以线性方式组织阶段，并且仅将端到端解决方案视为结果。
-MTC 任务默认存储为串行容器。  
+串行容器以线性方式组织阶段，并且仅将端到端解决方案视为结果。MTC 任务默认存储为串行容器。  
 #### 平行容器(parallel-containers)
-并行容器结合了一系列阶段，以允许规划替代解决方案。更多信息参考[parallel-containers](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/parallel_containers.html#parallel-containers)   
-### 初始化 MTC 任务 （Initializing a MTC Task）
+并行容器结合了一系列阶段，以允许规划替代解决方案。更多信息参考[parallel-containers](https://moveit.picknik.ai/main/doc/concepts/moveit_task_constructor/parallel_containers.html#parallel-containers) 
+![alt text](image-17.png)  
+- 替代方案：替代容器允许添加并行执行的阶段。所有子阶段的解决方案都在最后收集并按成本排序。示例——规划具有多个成本项的轨迹。
+- 后备方案：后备容器按顺序执行子阶段，直到其中一个阶段返回成功或所有阶段都返回失败。示例 - 每次使用一个不同的求解器进行规划，直到获得成功的解决方案。
+- 合并方案：合并容器中的阶段结合了多个不同的问题，即并行规划不同的规划组。所有子项的解决方案合并为一个解决方案以便并行执行。示例 - 打开夹持器，同时将手臂移动到某个位置
+
+### MTC设计教程
+MTC运行代码定义在[mtc_node.cpp](./mtc_tutorial/src/mtc_node.cpp)文件中
+#### 初始化 MTC 任务 （Initializing a MTC Task）
 将顶层规划问题指定为 MTC Task，将由 Stages 指定的子问题添加到 MTC 任务对象中。  
 ```C++  
-auto node = std::make_shared<rclcpp::Node>();
-auto task = std::make_unique<moveit::task_constructor::Task>();
-task->loadRobotModel(node);
-// Set controllers used to execute robot motion. If not set, MoveIt has controller discovery logic.
-task->setProperty("trajectory_execution_info", "joint_trajectory_controller gripper_controller");
+rclcpp::NodeOptions options;
+options.automatically_declare_parameters_from_overrides(true);
+//定义mtc
+auto mtc_task_node = std::make_shared<MTCTaskNode>(options);
+rclcpp::executors::MultiThreadedExecutor executor;
+
+//多线程运行
+auto spin_thread = std::make_unique<std::thread>([&executor, &mtc_task_node]() {
+  executor.add_node(mtc_task_node->getNodeBaseInterface());
+  executor.spin();
+  executor.remove_node(mtc_task_node->getNodeBaseInterface());
+});
+//定义场景物体尺寸，位姿
+mtc_task_node->setupPlanningScene();
+//定义MTC的阶段和串行容器
+mtc_task_node->doTask();
 ```
-### 向 MTC 任务添加容器和阶段（Adding containers and stages to a MTC Task）  
+#### 向 MTC 任务添加容器和阶段（Adding containers and stages to a MTC Task）  
 向 MTC 任务添加阶段
 ```C++  
 auto current_state = std::make_unique<moveit::task_constructor::stages::CurrentState>("current_state");
@@ -1255,12 +1395,10 @@ task->add(std::move(current_state));
 容器源自阶段，因此可以类似地将容器添加到 MTC 任务中
 ```C++  
 auto container = std::make_unique<moveit::task_constructor::SerialContainer>("Pick Object");
-// TODO: Add stages to the container before adding the container to MTC task
 task->add(std::move(container));
 ``` 
-### 设置规划求解器 （Setting planning solvers） 
-进行运动规划的阶段需要求解器信息。   
-MTC 中可用的求解器：
+#### 设置规划求解器 （Setting planning solvers） 
+进行运动规划的阶段需要求解器信息。MTC 中可用的求解器：
 1. [PipelinePlanner](./moveit_task_constructor/core/src/solvers/pipeline_planner.cpp)- 使用 MoveIt 的规划管道,默认ompl
 2. [JointInterpolation](./moveit_task_constructor/core/src/solvers/joint_interpolation.cpp)- 在起始和目标关节状态之间进行插值。它不支持复杂的运动。
 3. [CartesianPath](./moveit_task_constructor/core/src/solvers/cartesian_path.cpp)- 在笛卡尔空间中沿直线移动末端执行器。  
@@ -1269,21 +1407,17 @@ MTC 中可用的求解器：
 ```C++  
 const auto mtc_pipeline_planner = std::make_shared<moveit::task_constructor::solvers::PipelinePlanner>(
     node, "ompl", "RRTConnectkConfigDefault");
-const auto mtc_joint_interpolation_planner =
-    std::make_shared<moveit::task_constructor::solvers::JointInterpolationPlanner>();
+const auto mtc_joint_interpolation_planner = std::make_shared<moveit::task_constructor::solvers::JointInterpolationPlanner>();
 const auto mtc_cartesian_planner = std::make_shared<moveit::task_constructor::solvers::CartesianPath>();
 ```  
-这些求解器将被传递到诸如MoveTo、、MoveRelative、Connect等阶段。  
-### 设置属性 （Setting Properties）   
-每个 MTC 阶段都有可配置的属性。例如 - 计划组、超时、目标状态等。
-可以使用下面的函数设置不同类型的属性
+这些求解器将被传递到诸如**Connect、MoveTo、MoveRelative**等阶段。  
+#### 设置属性 （Setting Properties）   
+每个 MTC 阶段都有可配置的属性。例如 - 计划组、超时、目标状态等。可以使用下面的函数设置不同类型的属性
 ```C++  
 void setProperty(const std::string& name, const boost::any& value);
 ```    
-### 阶段成本计算器（Cost calculator for Stages） 
-子阶段可以轻松地从其父阶段继承属性，从而减少配置开销。  
-CostTerm 是计算 MTC 阶段解决方案成本的基本接口。
-MTC 中提供 CostTerm 实现：
+#### 阶段成本计算器（Cost calculator for Stages） 
+子阶段可以轻松地从其父阶段继承属性，从而减少配置开销。CostTerm 是计算 MTC 阶段解决方案成本的基本接口。MTC 中提供 CostTerm 实现：
 1. Constant- 为每个解决方案添加固定成本
 2. PathLength- 成本取决于轨迹长度，不同关节的重量可选
 3. TrajectoryDuration- 成本取决于整个轨迹的执行时间
@@ -1295,11 +1429,10 @@ MTC 中提供 CostTerm 实现：
 
 如何使用设置 CostTerm 的示例代码LambdaCostTerm
 ```C++  
-stage->setCostTerm(moveit::task_constructor::LambdaCostTerm(
-      [](const moveit::task_constructor::SubTrajectory& traj) { return 100 * traj.cost(); }));
+stage->setCostTerm(moveit::task_constructor::LambdaCostTerm([](const moveit::task_constructor::SubTrajectory& traj) { return 100 * traj.cost(); }));
 ```   
 MTC 提供的所有阶段都有默认的成本项。产生轨迹作为解决方案的阶段通常使用路径长度来计算成本。   
-### 规划和执行 MTC 任务
+#### 规划和执行 MTC 任务
 规划 MTC 任务将返回MoveItErrorCode。请参阅[此处](https://github.com/moveit/moveit_msgs/blob/ros2/msg/MoveItErrorCodes.msg)以识别不同的错误类型。如果规划成功，您可以预期计划函数将返回moveit_msgs::msg::MoveItErrorCodes::SUCCESS。
 ```C++  
 auto error_code = task.plan()
@@ -1308,7 +1441,11 @@ auto error_code = task.plan()
 ```C++  
 auto result = task.execute(*task.solutions().front());
 ```  
-## MoveIt 插件
-![alt text](image-16.png)
+#### MTC运行实例
+先运行显示机械臂和mtc的rviz程序，RViz 中的“运动规划任务”面板列出了正在执行的 MTC 任务的所有阶段。点击每个阶段的名称即可查看其解决方案。失败的解决方案将包含失败的描述性原因。
+ros2 launch moveit_task_constructor_demo demo.launch.py
+执行具体mtc任务
+ros2 launch mtc_tutorial pick_and_place.launch.py
+
 
 

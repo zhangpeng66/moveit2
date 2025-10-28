@@ -557,6 +557,18 @@ rclcpp_action::CancelResponse jaka_robot_driver::handle_cancel(
 	return rclcpp_action::CancelResponse::ACCEPT;
 }
 ```
+![alt text](image-16.png)
+Action的内容格式包含三个部分：目标、反馈、结果
+（1）目标（goal）：
+- 机器人执行一个动作，应该有明确的移动目标信息，包括一些参数的设定，如方向、角度、速度等等。从而使机器人完成动作任务。
+- 目标在完成之前可被占用或被取消。
+- 目标可处于ACTIVE、SUCCEEDED、ABORTED等不同的状态。
+
+（2）反馈（feedbac）
+在动作进行的过程中，应该有实时的状态信息反馈给客户端，告诉客户端动作完成的状态，可以使客户端作出准确的判断去修正命令。
+（3）结果（result）
+当动作完成时，服务端把运动的结果数据发送给客户端，使客户端得到本次动作的全部信息，例如机器人的运动时长、最终位姿等。
+
 在***foxy***版本中先运行驱动
 ros2 launch moveit_arm_control arm_control.launch.py 
 再运行move_group节点

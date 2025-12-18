@@ -71,6 +71,15 @@
 
 ## 编译与运行
 ### 编译
+
+echo "# moveit2_foxy" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/zhangpeng66/moveit2_foxy.git
+git push -u origin main
+
 安装请参考[ROS MoveIT2（humble）安装总结](https://blog.csdn.net/woshigaowei5146/article/details/128131452),[官网](https://moveit.picknik.ai/main/doc/tutorials/getting_started/getting_started.html)
 colcon build --mixin release --parallel-workers 8
 wget https://github.com/ricab/scope_guard/blob/main/scope_guard.hpp
@@ -747,7 +756,7 @@ double Trajectory::getMinMaxPathAcceleration(double path_pos, double path_vel, b
 ![alt text](image-10.png)
 ```C++
 //关节加速度限制对路径速度的限制
-double Trajectory::getAccelerationMaxPathVelocity(double path_pos) const
+double Trajectory:: (double path_pos) const
 {
   double max_path_velocity = std::numeric_limits<double>::infinity();
   const Eigen::VectorXd config_deriv = path_.getTangent(path_pos);
@@ -852,11 +861,11 @@ bool Trajectory::getNextSwitchingPoint(double path_pos, TrajectoryStep& next_swi
   }
 }
 ```
-3）沿速度限制曲线前进：保持在$\dot s^{max}_{vel}(s)$上，直到满足某些条件（根据曲线斜率与加速度极值比较），再转
+3）沿速度限制曲线前进（绿色虚线）：保持在$\dot s^{max}_{vel}(s)$上，直到满足某些条件（根据曲线斜率与加速度极值比较），再转
 如果$\frac{\ddot s^{max}(s,\dot s^{max}_{vel}(s))}{\dot s} < \frac{d}{ds}\dot s^{max}_{acc}(s)$，返回到图中2点
 如果$\frac{\ddot s^{min}(s,\dot s^{max}_{vel}(s))}{\dot s} < \frac{d}{ds}\dot s^{max}_{acc}(s)$，返回图中的4点
 4）搜索下一个切换点：在限制曲线上找到下一个切换点，然后转去步骤 5
-5）最小加速反向积分：从切换点开始，沿$\ddot s_{min}$反向积分，直到和前向轨迹相交。如果相交点在起始轨迹上，则更新并继续前向搜索。如果最终能衔接到$s = s_f,\dot s = 0$ 则完成。如果相交失败，算法报错。
+5）最小加速反向积分：从切换点开始，沿$\ddot s_{min}$反向积分，直到和前向轨迹相交（绿色线5的过程）。如果相交点在起始轨迹上，则更新并继续前向搜索。如果最终能衔接到$s = s_f,\dot s = 0$ 则完成。如果相交失败，算法报错。
 代码见 [time_optimal_trajectory_generation.cpp](./moveit2/moveit_core/trajectory_processing/src/time_optimal_trajectory_generation.cpp) 文件中构造函数**Trajectory::Trajectory()** 中。
 ![alt text](image-13.png)
 

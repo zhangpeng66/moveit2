@@ -1,0 +1,16 @@
+bool enable          # 启动力控模式
+float64 force        # 力控模式Z轴力量限制
+float64 vel          # 力控插枪速度mm/s
+float64 acc          # 力控插枪加速度 mm/s^2
+float64 depth        # 力控插枪深度 mm
+uint32 seq           # 序号
+string car_type      # 增加车型
+float64 depth_thres  # 触发第二段调整的插入深度
+float64 force_second # 算法第二段调整力阈值
+float64 joint_vel    # 关节速度，第二段调整
+float64 joint_acc    # 关节加速度，第二段调整
+float64 inpos_thres  # 到位的阈值 用于判断插枪动作inpos=1时是目前插枪没到位 还是动作尚未开始
+float64 depth_second # final insert的插入深度
+---
+int32 ret                       # 返回值
+string message                  # 返回消息

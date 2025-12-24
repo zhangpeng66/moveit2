@@ -1,0 +1,5 @@
+bool is_enable  # 是否启用碰撞
+uint8 level     # 碰撞等级 1-5 0 代表不启用
+---
+int16 ret
+string message

@@ -1,0 +1,4 @@
+float64[] pose 
+uint32 loc_type
+---
+bool result

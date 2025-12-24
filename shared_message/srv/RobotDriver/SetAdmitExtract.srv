@@ -1,0 +1,19 @@
+bool enable              # 启动
+uint32 seq               # 序号
+# 恒力模式配置
+float64 ft_damping
+float64 ft_constant
+bool loop              # 是否循环拔枪
+float64 ft_increment   # 每次循环的力增量
+# 拔枪深度
+float64 max_extraction
+shared_message/Adjustment[] total_adjustment   # 总调整量
+
+uint8 CAR_TYPE_ID_ELETRE = 1 # 车型编号1, eletre
+uint8 CAR_TYPE_ID_EMEYA = 2  # 车型编号2, emeya
+uint8 CAR_TYPE_ID_ZEEKR001 = 3 # 车型编号3, 极氪001
+uint8 CAR_TYPE_ID_LYNKCO08 = 4 # 车型编号4, 领克08
+int32 car_type         # 车型
+---
+int32 ret                       # 返回值
+string message                  # 返回消息

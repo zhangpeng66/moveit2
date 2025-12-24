@@ -1,0 +1,15 @@
+bool enable          # 启动力控调整
+float64 angle_min        # 调整的最小角度
+float64 joint_vel          # 力控调整角速度rad/s
+float64 joint_acc          # 力控调整角加速度 rad/s^2
+uint32 seq               # 序号
+
+int32 CAR_TYPE_ID_ELETRE = 1 # 车型编号1, eletre
+int32 CAR_TYPE_ID_EMEYA = 2  # 车型编号2, emeya
+int32 CAR_TYPE_ID_ZEEKR001 = 3 # 车型编号3, 极氪001
+int32 CAR_TYPE_ID_LYNKCO08 = 4 # 车型编号3, 领克08
+
+int32 car_type         # 车型
+---
+int32 ret                       # 返回值
+string message                  # 返回消息

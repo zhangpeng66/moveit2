@@ -1,0 +1,12 @@
+# 工具TCP
+int32 tool_id                # 工具ID
+shared_message/TcpPose tcp   # 工具TCP 欧拉角
+# 设置负载
+float64 mass                 # 工具重量, 单位kg
+geometry_msgs/Point cog      # 重心
+# 修改碰撞等级
+bool is_enable               # 是否启用碰撞保护
+uint8 level                  # 碰撞等级 1-5 0 代表不启用
+---
+int32 ret                       # 返回值
+string message                  # 返回消息

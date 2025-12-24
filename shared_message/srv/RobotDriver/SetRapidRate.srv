@@ -1,0 +1,4 @@
+float64 rapid_rate              # double 速度倍率 %
+---
+int32 ret                       # 返回值
+string message                  # 返回消息

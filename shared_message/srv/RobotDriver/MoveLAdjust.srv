@@ -1,0 +1,9 @@
+shared_message/TcpPose target   # 目标关节坐标
+float64 vel                     # double 关节速度 rad/s
+float64 acc                     # double 关节加速度 rad/s^2
+float64 dec                     # double 关节减速度 rad/s^2
+float64 tol                     # 容差 单位mm
+bool is_blocking                # 是否阻塞运行，默认非阻塞
+---
+int32 ret                       # 返回值
+string message                  # 返回消息

@@ -1,0 +1,60 @@
+%YAML:1.0
+
+is_tcp_calib: 0
+
+car_type: 1 # 1: eletre; 2: emeya; 
+
+KpFx: -6e-4
+KpFy: -3e-4 
+KiFx: -1e-5
+KiFy: -1e-5
+KdFx: 1e-5
+KdFy: 1e-5
+
+ignore_Fx_lower: -5.0
+ignore_Fx_upper: 5.0
+
+ignore_Fy_lower: -10.0
+ignore_Fy_upper: 10.0
+
+desired_fx: !!opencv-matrix
+  rows: 2
+  cols: 1
+  dt: d
+  data: [13.0, -6.0] # [固定目标值, 动态目标值]
+
+desired_fy: !!opencv-matrix
+  rows: 2
+  cols: 1
+  dt: d
+  data: [-20.0, 0.0]
+
+num_force_container: 100
+
+max_adjust_count: 3
+max_adjust_r: 0.015
+max_sum_adjust_r: 0.030
+
+two_search_ratio_depth: 4.0
+three_search_ratio_depth: 1.0
+
+###### 拔枪参数 ######
+ex_fx_bias: -35.0
+ex_fy_bias: 0.0
+
+ex_KpFx: -3e-4
+ex_KpFy: -3e-4 
+ex_KiFx: -1e-5
+ex_KiFy: -1e-5
+ex_KdFx: 1e-4
+ex_KdFy: 1e-4
+
+ex_ignore_Fx_lower: -5.0
+ex_ignore_Fx_upper: 5.0
+
+ex_ignore_Fy_lower: -30.0
+ex_ignore_Fy_upper: 30.0
+
+ex_max_adjust_count: 2
+ex_max_adjust_r: 0.01
+ex_sum_adjust_r: 0.02

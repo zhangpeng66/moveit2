@@ -1,0 +1,5 @@
+int32 tool_id                # 工具ID
+shared_message/TcpPose tcp   # 工具TCP 欧拉角
+---
+int32 ret                       # 返回值
+string message                  # 返回消息

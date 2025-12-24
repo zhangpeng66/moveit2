@@ -1,0 +1,6 @@
+int32 tool_id                # 工具ID
+float64 mass                 # 工具重量, 单位kg
+geometry_msgs/Point cog      # 重心
+---
+int32 ret                       # 返回值
+string message                  # 返回消息

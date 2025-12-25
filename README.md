@@ -94,6 +94,8 @@ colcon build --mixin release --parallel-workers 2
 ### 运行
 killall -q gzserver || echo "未找到gzserver进程"
 killall -q gzclient || echo "未找到gzclient进程"
+或者使用ps -ef | grep gazebo
+kill -9 进程号
 先运行gazebo程序
 ros2 launch jaka_zu5_gazebo jaka_zu5_bringup_gazebo.launch.py
 再运行move_group和显示rviz程序

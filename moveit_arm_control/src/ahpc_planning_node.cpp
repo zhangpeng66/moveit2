@@ -1,7 +1,7 @@
 #include "ahpc_planning_node.h"
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("ahpc_planning");
 
 static const std::string PLANNING_GROUP = "jaka_arm";
@@ -43,9 +43,9 @@ AHPCPlanning::AHPCPlanning(const rclcpp::NodeOptions& options)
 	robot_driver_status_sub_ = node_->create_subscription<shared_message::msg::RobotDriverStatus>(
       "/jaka_zu5_driver/robot_states", 10, std::bind(&AHPCPlanning::robotDriverStatusHandle, this, std::placeholders::_1));
 	move_to_location_pos_srv_ = node_->create_service<shared_message::srv::MoveToLocationPosition>("move_to_location_position", std::bind(&AHPCPlanning::moveToLocationPosition, this, std::placeholders::_1,std::placeholders::_2));
-    move_group_interface_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(node_, PLANNING_GROUP);
-    move_group_interface_->setPlanningTime(PLANNING_TIME_S);
-    move_group_interface_->setNumPlanningAttempts(PLANNING_ATTEMPTS);
+    p_move_group_interface_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(node_, PLANNING_GROUP);
+    p_move_group_interface_->setPlanningTime(PLANNING_TIME_S);
+    p_move_group_interface_->setNumPlanningAttempts(PLANNING_ATTEMPTS);
 }
 
 rclcpp::node_interfaces::NodeBaseInterface::SharedPtr AHPCPlanning::getNodeBaseInterface()
@@ -210,31 +210,46 @@ void AHPCPlanning::doTask()
     if(single_task_update_status_)
 	{
 		single_task_update_status_ = false;
-		const moveit::core::JointModelGroup* joint_model_group = move_group_interface_->getRobotModel()->getJointModelGroup(PLANNING_GROUP);
+		const moveit::core::JointModelGroup* p_joint_model_group = p_move_group_interface_->getRobotModel()->getJointModelGroup(PLANNING_GROUP);
 		// Now, we call the planner to compute the plan and visualize it.
 		// Note that we are just planning, not asking move_group
 		// to actually move the robot.
 		moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 		// When done with the path constraint be sure to clear it.
-		move_group_interface_->clearPoseTargets();
-		move_group_interface_->clearPathConstraints();
-		moveit::core::RobotStatePtr cur_state = move_group_interface_->getCurrentState(10);
-		if(!cur_state)
+		p_move_group_interface_->clearPoseTargets();
+		p_move_group_interface_->clearPathConstraints();
+		moveit::core::RobotStatePtr p_cur_state = p_move_group_interface_->getCurrentState(10);
+		if(!p_cur_state)
 		{
 			return;
 		}
 		//参考坐标系
-		std::string frame = move_group_interface_->getPlanningFrame();
+		std::string frame = p_move_group_interface_->getPlanningFrame();
 		RCLCPP_INFO(LOGGER,"reference frame: %s", frame.c_str());
 		//末端Link
-		RCLCPP_INFO(LOGGER, "End effector link: %s",move_group_interface_->getEndEffectorLink().c_str());
+		RCLCPP_INFO(LOGGER, "End effector link: %s",p_move_group_interface_->getEndEffectorLink().c_str());
+		std::vector<std::string> vec_link_names = p_move_group_interface_->getLinkNames();
+		for(size_t i=0;i<vec_link_names.size();i++)
+		{
+			RCLCPP_INFO(LOGGER, "move group link %ld: %s",i,vec_link_names[i].c_str());
+		}
+		const std::vector<std::string>& vec_joints_names = p_move_group_interface_->getActiveJoints();
+		// 当前关节值
+		std::vector<double> joint_group_positions;
+		p_cur_state->copyJointGroupPositions(p_joint_model_group, joint_group_positions);
+		int i=0;
+		for (auto joint_name : vec_joints_names)
+		{
+			RCLCPP_INFO(LOGGER, "IK joint: %s  : %f", joint_name.c_str(),joint_group_positions[i]);
+			i++;
+		}
 		if(loc_type_ == 0)// Cartesian Paths 
 		{
-			move_group_interface_->setStartStateToCurrentState();//设置当前状态为开始位置（表示1）
+			p_move_group_interface_->setStartStateToCurrentState();//设置当前状态为开始位置（表示1）
 			// Cartesian Paths
-			geometry_msgs::msg::Pose start_pose = move_group_interface_->getCurrentPose().pose;
+			geometry_msgs::msg::Pose start_pose = p_move_group_interface_->getCurrentPose().pose;
 			std::vector<geometry_msgs::msg::Pose> waypoints;
-			waypoints.push_back(start_pose);
+			waypoints.push_back(start_pose); //?
 
 			geometry_msgs::msg::Pose target_pose2 = start_pose;
 			baseToTcp(start_pose,vec_loc_pose_,target_pose2);
@@ -247,40 +262,58 @@ void AHPCPlanning::doTask()
 			// large unpredictable motions of redundant joints and could be a safety issue
 			moveit_msgs::msg::RobotTrajectory trajectory;
 			const double jump_threshold = 0.0;
-			const double eef_step = 0.005;
-			double fraction = move_group_interface_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
+			const double eef_step = 0.008;
+			double fraction = p_move_group_interface_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
 			RCLCPP_INFO(LOGGER, "plan 0 (Cartesian path) (%.2f%% acheived)", fraction * 100.0);
 			if(fraction < 1.0)
 			{
 				return;
 			}
 			// You can execute a trajectory like this.
-			move_group_interface_->execute(trajectory);
+			p_move_group_interface_->execute(trajectory);
 			
 		}
 		else if(loc_type_ == 1) //send pose goal
 		{
 
 			//******************基于base_link坐标系的规划****************** */
-			geometry_msgs::msg::Pose current_pose = move_group_interface_->getCurrentPose().pose;
+			geometry_msgs::msg::Pose current_pose = p_move_group_interface_->getCurrentPose().pose;
 			geometry_msgs::msg::Pose target_pose;
             baseToTcp(current_pose,vec_loc_pose_,target_pose);
 			//******************************end********************************************** */
 			//先用 IK 求 joint target，再用 RRT 规划
-			move_group_interface_->setStartStateToCurrentState(); //设置当前状态为开始位置（表示2）
-			bool found_ik = move_group_interface_->setJointValueTarget(target_pose);
-			if (!found_ik)
+			p_move_group_interface_->setStartStateToCurrentState(); //设置当前状态为开始位置（表示2）
+		    bool found_ik = p_cur_state->setFromIK(p_joint_model_group,target_pose,0.1);
+
+			if (found_ik)
+			{
+				RCLCPP_INFO(LOGGER, "IK solution found");
+				std::vector<double> joint_values;
+				p_cur_state->copyJointGroupPositions(
+					p_joint_model_group, joint_values);
+
+				const auto& joint_names = p_joint_model_group->getVariableNames();
+
+				for (size_t i = 0; i < joint_values.size(); ++i)
+				{
+					RCLCPP_INFO(LOGGER,
+					"%s = %f",
+					joint_names[i].c_str(),
+					joint_values[i]);
+				}
+			}
+			else
 			{
 				RCLCPP_ERROR(LOGGER, "No IK solution for target pose");
 				return;
 			}
-			move_group_interface_->setPlannerId("RRTConnectkConfigDefault");
+			p_move_group_interface_->setPlannerId("RRTConnectkConfigDefault");
 			// //RRT 对 精确姿态目标 非常不友好。
-			// move_group_interface_->setGoalPositionTolerance(0.01);
-			// move_group_interface_->setGoalOrientationTolerance(0.15);
+			// p_move_group_interface_->setGoalPositionTolerance(0.01);
+			// p_move_group_interface_->setGoalOrientationTolerance(0.15);
 
 
-			bool success = (move_group_interface_->plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+			bool success = (p_move_group_interface_->plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
 			RCLCPP_INFO(LOGGER, "Plan 1 (pose goal) %s", success ? "SUCCEEDED" : "FAILED");
 			if(!success)
@@ -288,16 +321,11 @@ void AHPCPlanning::doTask()
 				return;
 			}
 			// Moving to a pose goal
-			move_group_interface_->move();
+			p_move_group_interface_->move();
 		}
 		else if(loc_type_ == 2) //space joint goal
 		{
 			// Planning to a joint-space goal
-			moveit::core::RobotStatePtr current_state = move_group_interface_->getCurrentState(10);
-
-			std::vector<double> joint_group_positions;
-			current_state->copyJointGroupPositions(joint_model_group, joint_group_positions);
-
 			// Now, let's modify one of the joints, plan to the new joint space goal and visualize the plan.
 			joint_group_positions[0] = vec_loc_pose_[0];  // radians
 			joint_group_positions[1] = vec_loc_pose_[1];  // radians
@@ -306,20 +334,20 @@ void AHPCPlanning::doTask()
 			joint_group_positions[4] = vec_loc_pose_[4];  // radians
 			joint_group_positions[5] = vec_loc_pose_[5];  // radians
 
-			move_group_interface_->setStartStateToCurrentState();
-			move_group_interface_->setJointValueTarget(joint_group_positions);
+			p_move_group_interface_->setStartStateToCurrentState();
+			p_move_group_interface_->setJointValueTarget(joint_group_positions);
 			
-			move_group_interface_->setMaxVelocityScalingFactor(0.05);
-			move_group_interface_->setMaxAccelerationScalingFactor(0.05);
+			p_move_group_interface_->setMaxVelocityScalingFactor(0.05);
+			p_move_group_interface_->setMaxAccelerationScalingFactor(0.05);
 
-			bool success = (move_group_interface_->plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+			bool success = (p_move_group_interface_->plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
 			RCLCPP_INFO(LOGGER, "Plan 2 (joint space goal) %s", success ? "SUCCEEDED" : "FAILED");
 			if(!success)
 			{
 				return;
 			}
 			// Moving to a joint-space goal
-			move_group_interface_->move();
+			p_move_group_interface_->move();
 
 
 		}

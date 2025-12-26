@@ -56,7 +56,7 @@ public:
 private:
 
   rclcpp::Node::SharedPtr node_;
-  moveit::planning_interface::MoveGroupInterfacePtr move_group_interface_;
+  moveit::planning_interface::MoveGroupInterfacePtr p_move_group_interface_;
   //topic
   rclcpp::Subscription<shared_message::msg::RobotDriverStatus>::SharedPtr robot_driver_status_sub_; 
   //service

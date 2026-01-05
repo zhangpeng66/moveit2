@@ -56,15 +56,19 @@ public:
 private:
 
   rclcpp::Node::SharedPtr node_;
-  moveit::planning_interface::MoveGroupInterfacePtr move_group_interface_;
+  moveit::planning_interface::MoveGroupInterfacePtr p_move_group_interface_;
   //topic
   rclcpp::Subscription<shared_message::msg::RobotDriverStatus>::SharedPtr robot_driver_status_sub_; 
   //service
   rclcpp::Service<shared_message::srv::MoveToLocationPosition>::SharedPtr move_to_location_pos_srv_;
   robot_driver_status driver_status_;      /* 机器人驱动状态 */ 
+  bool single_task_update_status_;
+  int loc_type_;
+  std::vector<float> vec_loc_pose_;
   void robotDriverStatusHandle(const shared_message::msg::RobotDriverStatus::ConstSharedPtr driver_status);
   void moveToLocationPosition(const std::shared_ptr<shared_message::srv::MoveToLocationPosition::Request> request,
                               std::shared_ptr<shared_message::srv::MoveToLocationPosition::Response> response);
+  void baseToTcp(geometry_msgs::msg::Pose& cur_pose,std::vector<float> delta_pose,geometry_msgs::msg::Pose& tar_pose);
 };
 
 #endif //CONSTRAINED_PLANNING_NODE_H_

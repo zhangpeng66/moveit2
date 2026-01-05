@@ -12,6 +12,7 @@ from ament_index_python.packages import get_package_share_directory
 import xacro
 
 def generate_launch_description():
+
     package_name = 'jaka_zu5_gazebo'
 
     robot_name_in_model = 'jaka_description'
@@ -27,7 +28,7 @@ def generate_launch_description():
     params = {'robot_description': doc.toxml()}
 
     print("urdf", doc.toxml())
-
+    
     # 启动gazebo
     gazebo =  ExecuteProcess(
         cmd=['gazebo', '--verbose','-s', 'libgazebo_ros_init.so', '-s', 'libgazebo_ros_factory.so'],

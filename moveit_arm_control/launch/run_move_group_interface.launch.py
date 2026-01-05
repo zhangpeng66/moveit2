@@ -197,9 +197,10 @@ def generate_launch_description():
             kinematics_yaml,
             ompl_planning_pipeline_config,
             trajectory_execution,
-            moveit_controllers,
+            moveit_simple_controllers_yaml,#必须加载这个不然没有控制器
             planning_scene_monitor_parameters,
             joint_limits_yaml,
+            {'use_sim_time': True} #解决Failed to fetch current robot state
         ],
     )
     return launch.LaunchDescription(
@@ -208,8 +209,8 @@ def generate_launch_description():
             #static_tf,
             #robot_state_publisher,
             #ros2_control_node,
-            ahpc_planning_node,
-            #run_move_group_node,
+            run_move_group_node,
+            ahpc_planning_node
         ]
         #+ load_controllers
         )

@@ -1,3 +1,6 @@
+
+sudo apt install python3-colcon-common-extensions
+sudo apt install python3-colcon-mixin
 colcon mixin add default2 https://gitee.com/zhenshenglee/colcon-mixin-repository/raw/master/index.yaml
 colcon mixin update default2
 

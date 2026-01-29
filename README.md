@@ -13,7 +13,7 @@
   - [运动规划（Motion Planning）](#运动规划motion-planning)
     - [运动规划请求](#运动规划请求)
     - [运动规划应答](#运动规划应答)
-    - [运动规划请求适配器](#运动规划请求适配器)
+    - [运动规划请求应答适配器](#运动规划请求应答适配器)
   - [混合规划（Hybrid Planning）hybrid\_planning\_manager.cpp](#混合规划hybrid-planninghybrid_planning_managercpp)
     - [全局规划 (Global Planning) global\_planner\_component.cpp](#全局规划-global-planning-global_planner_componentcpp)
     - [局部规划 (Local Planning)local\_planner\_component.cpp](#局部规划-local-planninglocal_planner_componentcpp)
@@ -322,8 +322,8 @@ MoveIt 的默认逆运动学插件是使用KDL基于雅可比矩阵的数值求�
 5. 用户指定的约束：也可以使用用户定义的回调指定自己的约束。   
 ### 运动规划应答   
 move_group节点将根据您的运动计划请求生成所需轨迹。此轨迹将使手臂（或任何关节组）移动到所需位置。请注意，**move_group产生的结果是轨迹，而不仅仅是路径**。move_group 将使用所需的最大速度和加速度（如果指定）来生成遵循关节级速度和加速度约束的轨迹。
-### 运动规划请求适配器
-规划请求适配器[planning_request_adapter.cpp](./moveit2/moveit_core/planning_request_adapter/src/planning_request_adapter.cpp)文件中adaptAndPlan函数里面**容器变量adapters_**加载各种预设适配器，这些适配器分为**预处理运动规划请求和后处理运动规划响应**。预处理在几种情况下很有用，例如当机器人的起始状态略微超出机器人指定的关节限制时。其他几个操作需要后处理，例如将为机器人生成的路径转换为时间参数化的轨迹。MoveIt 提供了一组默认的运动规划适配器，每个适配器都执行非常具体的功能。
+### 运动规划请求应答适配器
+规划请求适配器[planning_request_adapter.cpp](./moveit2/moveit_core/planning_request_adapter/src/planning_request_adapter.cpp)文件中adaptAndPlan函数里面**容器变量adapters_**加载各种预设适配器，这些适配器分为**预处理运动规划请求（预处理）+move planner（OMPL路径规划）+后处理运动规划响应（轨迹生成）**。预处理在几种情况下很有用，例如当机器人的起始状态略微超出机器人指定的关节限制时。其他几个操作需要后处理，例如将为机器人生成的路径转换为时间参数化的轨迹。MoveIt 提供了一组默认的运动规划适配器，每个适配器都执行非常具体的功能。
 ![alt text](images/image5.png)   
 - 检查开始状态边界适配器 （CheckStartStateBounds）  
 在这种情况下，运动规划器无法进行规划，因为它会认为起始状态超出了关节限制。 “CheckStartStateBounds”规划请求适配器将通过将起始状态移动到关节限制来“修复”起始状态。  
@@ -414,9 +414,9 @@ Global Planner 是该架构中最简单的组件。它提供了一个处理 Glob
 
 ### 配置（Configuration）
 move_group是一个 ROS 节点。它使用 ROS param server 获取三种信息：
-1. URDF：move_group寻找robot_description参数来获取机器人的 [URDF](./jaka_description/urdf/jaka_zu5.urdf)。
-2. SRDF：move_group查找robot_description_semantic参数以获取机器人的 [SRDF](./jaka_zu5_moveit_config/config/jaka_zu5.srdf)。SRDF 通常由用户使用 MoveIt 设置助手创建（第一次），主要定义控制组（jaka_arm,jaka_with_gun,jaka_wo_gun）、感兴趣关节位置以及自碰撞矩阵等。
-3. MoveIt 配置：move_group将查找 MoveIt 特有的其他配置，包括关节限制、运动学、运动规划、感知和其他信息。这些组件的配置文件由 MoveIt 设置助手自动生成，并存储在[config](./jaka_zu5_moveit_config/config/)机器人相应 MoveIt 配置包的目录中。  
+1. URDF(统一)：move_group寻找robot_description参数来获取机器人的 [URDF](./jaka_description/urdf/jaka_zu5.urdf)。
+2. SRDF（语义）：move_group查找robot_description_semantic参数以获取机器人的 [SRDF](./jaka_zu5_moveit_config/config/jaka_zu5.srdf)。SRDF 通常由用户使用 MoveIt 设置助手创建（第一次），主要定义控制组（jaka_arm,jaka_with_gun,jaka_wo_gun）、感兴趣关节位置以及自碰撞矩阵等。
+3. MoveIt config（配置）：move_group将查找 MoveIt 特有的其他配置，包括关节限制、运动学、运动规划、感知和其他信息。这些组件的配置文件由 MoveIt 设置助手自动生成，并存储在[config](./jaka_zu5_moveit_config/config/)机器人相应 MoveIt 配置包的目录中。  
 ```C++    
   // Create the MoveIt MoveGroup Interface
   //node节点会接受参数服务器的参数
@@ -575,7 +575,7 @@ Action的内容格式包含三个部分：目标、反馈、结果
 - 目标在完成之前可被占用或被取消。
 - 目标可处于ACTIVE、SUCCEEDED、ABORTED等不同的状态。
 
-（2）反馈（feedbac）
+（2）反馈（feedback）
 在动作进行的过程中，应该有实时的状态信息反馈给客户端，告诉客户端动作完成的状态，可以使客户端作出准确的判断去修正命令。
 （3）结果（result）
 当动作完成时，服务端把运动的结果数据发送给客户端，使客户端得到本次动作的全部信息，例如机器人的运动时长、最终位姿等。
